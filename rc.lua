@@ -17,8 +17,10 @@ beautiful.init(theme_path)
 
 -- Default applications
 terminal = "urxvtc"
+-- where to paset stuff
+pastebin = ".pastebin"
 -- What is used to paste stuff
-pastecommand = "xclip -o >> " .. os.getenv("HOME") .. "/.pastebin"
+pastecommand = "xclip -o >> " .. os.getenv("HOME") .. "/" .. pastebin
 -- this is the default level when adding a todo note
 todo_level = "high"
 -- What should we use to lock the display?
@@ -64,7 +66,6 @@ floatapps =
     ["Preferences"] = true,
     ["XClipboard"] = true,
     ["Imagemagick"] = true,
-    ["pinentry"] = true,
     ["Snes9X"] = true,
     ["Add-ons"] = true
 }
@@ -75,7 +76,7 @@ apptags =
 {
     ["Opera"] = { screen = 1, tag = 2 },
     ["Xchm"] = { screen = 1, tag = 3 },
-    ["Xpdf"] = { screen = 1, tag = 3 },
+    ["apvlv"] = { screen = 1, tag = 3 },
 }
 -- Define if we want to use titlebar on all applications.
 use_titlebar = false
@@ -92,7 +93,7 @@ for s = 1, screen.count() do
         tags[s][tagnumber] = tag(tagnumber)
         -- Add tags to screen one by one
         tags[s][tagnumber].screen = s
-        awful.layout.set(layouts[1], tags[s][tagnumber])
+        awful.layout.set(layouts[3], tags[s][tagnumber])
     end
     -- I'm sure you want to see at least one tag.
     tags[s][1].selected = true
@@ -105,10 +106,12 @@ mysystray = widget({ type = "systray", align = "right" })
 
 -- Create a wibox for each screen and add it
 mywibox = {}
+bwibox = {}
 mypromptbox = {}
 mylayoutbox = {}
 batterybox = {}
 mpdbox = {}
+batbar = {}
 mytaglist = {}
 mytaglist.buttons = { button({ }, 1, awful.tag.viewonly),
                       button({ modkey }, 1, awful.client.movetotag),
@@ -132,6 +135,25 @@ batterybox = widget({ type = "textbox" })
 infobox = widget({ type = "textbox", align = "left" })
 -- Create a box for mpd
 mpdbox = widget({ type = "textbox", align = "left" })
+-- Create a bar for battery
+batbar = widget({type = 'progressbar', name = 'batbar' })
+batbar.width = 60
+batbar.height = 0.45
+batbar.gap = 1
+batbar.border_width = 1
+batbar.border_padding = 0
+batbar.ticks_count = 10
+batbar.ticks_gap = 1
+batbar:bar_properties_set('bat', {
+
+bg = beautiful.fg_urgent,
+fg = "red",
+fg_center = "yellow",
+fg_end = "green",
+reverse = false,
+min_value = 0,
+max_value = 100
+})
 -- Create a datebox widget
 datebox = widget({ type = "textbox", align = "right" })
 tbox = widget({ type = "textbox", align = "right" })
@@ -144,24 +166,30 @@ tbox = widget({ type = "textbox", align = "right" })
                              button({ }, 5, function () awful.layout.inc(layouts, -1) end) })
     -- Create a taglist widget
     mytaglist[s] = awful.widget.taglist.new(s, awful.widget.taglist.label.all, mytaglist.buttons)
+    -- Create the bottom wibox
+    bwibox = wibox({ position = "bottom", fg = beautiful.fg_normal, bg = beautiful.bg_normal })
+    	bwibox.widgets = {
+			   mpdbox,
+			   infobox,
+			   batterybox,
+			   batbar
+			  }
+	bwibox.screen = s
     -- Create a tasklist widget
     mytasklist[s] = awful.widget.tasklist.new(function(c)
                                                   return awful.widget.tasklist.label.currenttags(c, s)
                                               end, mytasklist.buttons)
 
-    mywibox[s] = wibox({ position = "top", height = 13 ,fg = beautiful.fg_normal, bg = beautiful.bg_normal })
+    mywibox[s] = wibox({ position = "top", fg = beautiful.fg_normal, bg = beautiful.bg_normal })
     -- Add widgets to the wibox - order matters
-    mywibox[s].widgets = { 
-	    		   mytaglist[s],
-                           mypromptbox[s],
-                           mylayoutbox[s],
-			   mpdbox,
-			   infobox,
-			   batterybox,
-			   tbox,
+    mywibox[s].widgets = {
+			   mytaglist[s],
+			   mytasklist[s],
+			   mypromptbox[s],
+			   mylayoutbox[s],
 			   datebox,
 			   mysystray
-		   }
+		}
     mywibox[s].screen = s
 end
 
@@ -170,12 +198,12 @@ end
 loadfile(awful.util.getdir("config") .. "/functions.lua")()
 --}}
 
---{{ 
+--{{
 -- load keybindings
 loadfile(awful.util.getdir("config") .. "/keybindings.lua")()
 --}}
 
---{{ 
+--{{
 -- load hooks
 loadfile(awful.util.getdir("config") .. "/hooks.lua")()
 --}}
