@@ -17,10 +17,10 @@ beautiful.init(theme_path)
 
 -- Default applications
 terminal = "urxvtc"
--- where to paset stuff
-pastebin = ".pastebin"
+-- where to paste stuff
+pastebin = os.getenv("HOME") .. ".pastebin"
 -- What is used to paste stuff
-pastecommand = "xclip -o >> " .. os.getenv("HOME") .. "/" .. pastebin
+pastecommand = "xclip -o >> " .. pastebin
 -- this is the default level when adding a todo note
 todo_level = "high"
 -- What should we use to lock the display?
@@ -74,9 +74,10 @@ floatapps =
 
 apptags =
 {
-    ["Opera"] = { screen = 1, tag = 2 },
+    ["Firefox"] = { screen = 1, tag = 2 },
     ["Xchm"] = { screen = 1, tag = 3 },
     ["apvlv"] = { screen = 1, tag = 3 },
+    ["FBReader"] = { screen = 1, tag = 3 },
 }
 -- Define if we want to use titlebar on all applications.
 use_titlebar = false
@@ -167,13 +168,11 @@ tbox = widget({ type = "textbox", align = "right" })
     -- Create a taglist widget
     mytaglist[s] = awful.widget.taglist.new(s, awful.widget.taglist.label.all, mytaglist.buttons)
     -- Create the bottom wibox
-    bwibox = wibox({ position = "bottom", fg = beautiful.fg_normal, bg = beautiful.bg_normal })
+    bwibox = wibox({ position = "right", fg = beautiful.fg_normal, bg = beautiful.bg_normal })
     	bwibox.widgets = {
-			   mpdbox,
-			   infobox,
-			   batterybox,
-			   batbar
-			  }
+			mytaglist[s],
+			mylayoutbox[s]
+		  }
 	bwibox.screen = s
     -- Create a tasklist widget
     mytasklist[s] = awful.widget.tasklist.new(function(c)
@@ -183,10 +182,11 @@ tbox = widget({ type = "textbox", align = "right" })
     mywibox[s] = wibox({ position = "top", fg = beautiful.fg_normal, bg = beautiful.bg_normal })
     -- Add widgets to the wibox - order matters
     mywibox[s].widgets = {
-			   mytaglist[s],
-			   mytasklist[s],
 			   mypromptbox[s],
-			   mylayoutbox[s],
+			   mpdbox,
+			   infobox,
+			   batterybox,
+			   batbar,
 			   datebox,
 			   mysystray
 		}

@@ -2,6 +2,17 @@
 -- by Gabriel "dunz0r" Fornaeus
 -- gfornaeus@gmail.com
 
+-- Executes a command and returns its output
+function execute_command(command)
+	local fh = io.popen(command)
+	local sthr = ""
+	for i in fh:lines() do
+		sthr = sthr .. i
+	end
+	io.close(fh)
+	return sthr
+end
+
 -- get mpd info
 --{{
 function get_mpd()
@@ -15,7 +26,7 @@ function get_mpd()
 		  rand = ""
 	  end
 	local zstats = mpd.send("playlistid " .. stats.songid)
-	now_playing = " <span color='#00FF00'><b>np:</b></span>" .. rand .. ( zstats.album  or "NA" ) .. "; " .. ( zstats.artist or "NA" ) .. " - " .. (zstats.title or zstats.file)
+	now_playing = " <span color='#00FF00'><b>np:</b></span>" .. rand .. ( zstats.album  or "NA" ) .. "; " .. ( zstats.artist or "NA" ) .. " - " .. (zstats.title or string.gsub(zstats.file, ".*/", "" ) )
 	 if stats.state == "pause" then
 	   now_playing = " <span color='#606060'>" .. now_playing .. "</span>"
   	 end
@@ -45,37 +56,44 @@ function show_playlist()
 		title = "MPD: " .. status ,
 		icon = os.getenv("HOME") .. "/.icons/mpd.png",
 		icon_size = 32,
+		bg = beautiful.bg_widget,
 		timeout = 7,
-		width = 400
+		width = 500
 	})
 	end
 --}}
 
--- shows batteryinfo for (adapter)
+-- add a todo note
 --{{
+
+	function addtodo (todo)
+		infobox.text = "| <b><u>todo:</u></b> " .. "<span color='#FF00FF'>" .. execute_command("todo --add --priority high " .. "'" .. todo .. "'") .. "</span>"
+	end
+-- shows batteryinfo for (adapter)
+--{{{
  function batteryinfo(adapter)
 
-     local fcur = io.open("/sys/class/power_supply/" .. adapter .. "/energy_now")
      local fcap = io.open("/sys/class/power_supply/" .. adapter .. "/energy_full")
+     local fcur = io.open("/sys/class/power_supply/" .. adapter .. "/energy_now")
      local fsta = io.open("/sys/class/power_supply/" .. adapter .. "/status")
      local cur = fcur:read()
      local cap = fcap:read()
      local sta = fsta:read()
      local battery = math.floor(cur / cap * 100)
      if sta:match("Charging") then
-         dir = "+"
+         dir = "<span color='#00FF00'>+ </span>"
      elseif sta:match("Discharging") then
-         dir = "-"
+         dir = "<span color='#FF0000'>- </span>"
      elseif sta:match("Full") then
-         dir = "="
+         dir = "<span color='#FFFF00'>= </span>"
      end
-     batterybox.text = " | " .. "<span color='#FFFF00'>" .. dir .. " </span>"
+     batterybox.text = " | " .. dir
      batbar:bar_data_add("bat",tonumber(battery) )
      fcur:close()
      fcap:close()
      fsta:close()
  end
- --}}
+ --}}}
 
 -- get loadaverage and temperature
 --{{

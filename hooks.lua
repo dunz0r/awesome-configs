@@ -124,9 +124,10 @@ end
 function hook_mpd()
 	mpdbox.text = get_mpd()
 end
--- Hook for loadavg and temp
+-- Hook for loadavg, temp and battery
 function hook_info()
 	infobox.text = load_temp()
+	batteryinfo("BAT0")
 end
 
 -- Run some of the hooks at start, so we don't have to wait for them
@@ -134,9 +135,8 @@ end
 hook_date()
 mpdbox.text = get_mpd()
 hook_info()
-batteryinfo("BAT0")
 -- Set timers for the hooks
+awful.hooks.timer.register(3, hook_mpd)
 awful.hooks.timer.register(60, hook_date)
-awful.hooks.timer.register(60, hook_info)
-awful.hooks.timer.register(10, batteryinfo("BATO"))
-awful.hooks.timer.register(5, hook_mpd)
+awful.hooks.timer.register(20, hook_info)
+
