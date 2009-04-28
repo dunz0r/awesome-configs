@@ -3,7 +3,6 @@
 --
 -- {{{ Mouse bindings
 root.buttons(awful.util.table.join(
-    awful.button({ }, 3, function () mymainmenu:toggle() end),
     awful.button({ }, 4, awful.tag.viewnext),
     awful.button({ }, 5, awful.tag.viewprev)
 ))
@@ -45,6 +44,12 @@ globalkeys = awful.util.table.join(
     awful.key({ modkey,           }, "Return", function () awful.util.spawn(terminal) end),
     awful.key({ modkey, "Control" }, "r", awesome.restart),
     awful.key({ modkey, "Shift"   }, "q", awesome.quit),
+    
+    -- MPD Bindings
+    awful.key({ modkey,		  }, "z"      function () mpd.previous () end),
+    awful.key({ modkey,		  }, "x"      function () mpd.toggle () end),
+    awful.key({ modkey,		  }, "c"      function () mpd.stop () end),
+    awful.key({ modkey,		  }, "v"      function () mpd.next () end),
 
     awful.key({ modkey,           }, "l",     function () awful.tag.incmwfact( 0.05)    end),
     awful.key({ modkey,           }, "h",     function () awful.tag.incmwfact(-0.05)    end),
@@ -56,7 +61,7 @@ globalkeys = awful.util.table.join(
     awful.key({ modkey, "Shift"   }, "space", function () awful.layout.inc(layouts, -1) end),
 
     -- Prompt
-    awful.key({ modkey }, "r",
+    awful.key({ modkey }, "F2",
               function ()
                   awful.prompt.run({ prompt = "Run: " },
                   mypromptbox[mouse.screen],
@@ -64,7 +69,7 @@ globalkeys = awful.util.table.join(
                   awful.util.getdir("cache") .. "/history")
               end),
 
-    awful.key({ modkey }, "x",
+    awful.key({ modkey }, "F4",
               function ()
                   awful.prompt.run({ prompt = "Run Lua code: " },
                   mypromptbox[mouse.screen],
