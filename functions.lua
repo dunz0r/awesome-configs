@@ -69,8 +69,10 @@ function show_playlist()
 	function addtodo (todo)
 		infobox.text = "| <b><u>todo:</u></b> " .. "<span color='#FF00FF'>" .. execute_command("todo --add --priority high " .. "'" .. todo .. "'") .. "</span>"
 	end
+--}}
+
 -- shows batteryinfo for (adapter)
---{{{
+--{{
  function batteryinfo(adapter)
 
      local fcap = io.open("/sys/class/power_supply/" .. adapter .. "/energy_full")
@@ -84,7 +86,7 @@ function show_playlist()
          dir = "<span color='#00FF00'>+ </span>"
      elseif sta:match("Discharging") then
          dir = "<span color='#FF0000'>- </span>"
-     elseif sta:match("Full") then
+     else
          dir = "<span color='#FFFF00'>= </span>"
      end
      batterybox.text = " | " .. dir
@@ -93,7 +95,7 @@ function show_playlist()
      fcap:close()
      fsta:close()
  end
- --}}}
+--}}
 
 -- get loadaverage and temperature
 --{{
