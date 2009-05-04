@@ -47,7 +47,7 @@ globalkeys = awful.util.table.join(
     
     -- MPD Bindings
     awful.key({ modkey,		  }, "z"      function () mpd.previous () end),
-    awful.key({ modkey,		  }, "x"      function () mpd.toggle () end),
+    awful.key({ modkey,		  }, "x"      function () mpd.toggle_play () end),
     awful.key({ modkey,		  }, "c"      function () mpd.stop () end),
     awful.key({ modkey,		  }, "v"      function () mpd.next () end),
 
