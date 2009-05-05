@@ -13,6 +13,7 @@ require("lib/shifty")
 require("lib/mpd")
 -- Wicked
 require("wicked")
+
 -- {{{ Variable definitions
 -- Themes define colours, icons, and wallpapers
 -- Just link your theme to ~/.awesome_theme
@@ -24,7 +25,7 @@ beautiful.init(theme_path)
 -- Default applications
 terminal = "urxvtc"
 -- Which browser
-browser = "firefox"
+browser = "uzbl --config /home/dunz0r/.config/uzbl/config"
 -- where to paste stuff
 pastebin = os.getenv("HOME") .. ".pastebin"
 -- What is used to paste stuff
@@ -95,10 +96,10 @@ use_titlebar = false
 --{{{ Shifty
 
 shifty.config.defaults = {
-  layout = "tile.top",
+  layout = "tiletop",
 }
 shifty.config.tags = {
-   ["1:irc"] = { position = 1, screen = 1,                                            },
+   ["1:irc"] = { position = 1, screen = 1, spawn = "urxvtc -name SSH -title Irssi -e ssh -C ninjaloot.se", },
    ["2:www"] = { exclusive = true, solitary = true, position = 2, spawn = browser,    },
   ["3:term"] = { persist = true, position = 3, mwfact = 0.60, layout = "tile",        },
   ["4:vim"]  = { position = 4, nopopup = true, layout = "tile.top",                   },
@@ -110,7 +111,7 @@ shifty.config.tags = {
 
 shifty.config.apps = {
         { match = { "Irssi",        }, tag = "1:irc",        screen = 1,     },
-        { match = {"Gran Paradiso.*", ".*Vimperator"       }, tag = "2:www",                        },
+        { match = {"Gran Paradiso.*", ".*uzbl"       }, tag = "2:www",                        },
         { match = {"urxvt"                          }, tag = "3:term",       screen = 1,     },
         { match = {"term:.*"                          }, tag = "3:term",       screen = 1,     },
         { match = {".*- VIM"                          }, tag = "4:vim",       screen = 1,     },
@@ -120,7 +121,7 @@ shifty.config.apps = {
         { match = {"Gimp","Ufraw"                   }, tag = "gimp",                         },
         { match = {"gimp-image-window"              }, slave = true,                         },
         { match = {"gqview"                         }, tag = "gqview",                       },
-        { match = { "mc"                       }, tag = "fs",                           },
+        { match = { ".*mc"                       }, tag = "fs",                           },
         { match = {"gcolor2", "xmag"                }, intrusive = true,                     },
         { match = {"gcolor2"                        }, geometry = { 100,100,nil,nil },       },
         { match = {"recordMyDesktop", "MPlayer", "xmag", 
@@ -131,7 +132,7 @@ shifty.config.apps = {
                              button({ modkey }, 3, awful.mouse.client.resize ), }, },
 }
 
-
+shifty.config.layouts = layouts
 shifty.init()
 -- }}}
 
