@@ -9,9 +9,10 @@ require("beautiful")
 require("naughty")
 -- Dynamic tagging with shifty
 require("lib/shifty")
--- MPD-library
+-- MPD library
 require("lib/mpd")
-
+-- Wicked
+require("wicked")
 -- {{{ Variable definitions
 -- Themes define colours, icons, and wallpapers
 -- Just link your theme to ~/.awesome_theme
@@ -134,7 +135,7 @@ shifty.config.apps = {
 shifty.init()
 -- }}}
 
--- {{{ Wibox
+-- {{{ widgets
 -- Create a systray
 mysystray = widget({ type = "systray", align = "right" })
 
@@ -146,6 +147,8 @@ mylayoutbox = {}
 batterybox = {}
 mpdbox = {}
 batbar = {}
+cpuwidget = {}
+cpugraphwdiget = {}
 mytaglist = {}
 mytaglist.buttons = { button({ }, 1, awful.tag.viewonly),
                       button({ modkey }, 1, awful.client.movetotag),
@@ -168,6 +171,14 @@ for s = 1, screen.count() do
 batterybox = widget({ type = "textbox" })
 -- Create an info box
 infobox = widget({ type = "textbox", align = "left" })
+-- Create a cpuwidget
+cpuwidget = widget({
+      type = 'textbox',
+          name = 'cpuwidget'
+        })
+
+        wicked.register(cpuwidget, wicked.widgets.cpu,
+            ' <span color="white">CPU:</span> $1%')
 -- Create a box for mpd
 mpdbox = widget({ type = "textbox", align = "left" })
 -- Create a bar for battery
@@ -189,6 +200,24 @@ reverse = false,
 min_value = 0,
 max_value = 100
 })
+-- Create a cpugraph widget
+cpugraphwidget = widget({
+    type = 'graph',
+    name = 'cpugraphwidget'
+})
+
+cpugraphwidget.height = 0.6
+cpugraphwidget.width = 45
+cpugraphwidget.bg = '#171717'
+cpugraphwidget.border_color = '#524E41'
+cpugraphwidget.grow = 'left'
+
+cpugraphwidget:plot_properties_set('cpu', {
+    fg = '#99999',
+})
+
+wicked.register(cpugraphwidget, wicked.widgets.cpu, '$1', 1, 'cpu')
+
 -- Create a datebox widget
 datebox = widget({ type = "textbox", align = "right" })
 tbox = widget({ type = "textbox", align = "right" })
@@ -205,7 +234,9 @@ tbox = widget({ type = "textbox", align = "right" })
     mytasklist[s] = awful.widget.tasklist.new(function(c)
                                                   return awful.widget.tasklist.label.currenttags(c, s)
                                               end, mytasklist.buttons)
+--}}}
 
+--{{{ Wibox
     mywibox[s] = wibox({ position = "top", fg = beautiful.fg_normal, bg = beautiful.bg_normal })
     -- Add widgets to the wibox - order matters
     mywibox[s].widgets = {
@@ -214,6 +245,8 @@ tbox = widget({ type = "textbox", align = "right" })
 			   infobox,
 			   batterybox,
 			   batbar,
+         cpuwidget,
+         cpugraphwidget,
          mytaglist[s],
 			   datebox,
 			   mysystray
