@@ -69,10 +69,8 @@ function show_playlist()
 	function addtodo (todo)
 		infobox.text = "| <b><u>todo:</u></b> " .. "<span color='#FF00FF'>" .. execute_command("todo --add --priority high " .. "'" .. todo .. "'") .. "</span>"
 	end
---}}
-
 -- shows batteryinfo for (adapter)
---{{
+--{{{
  function batteryinfo(adapter)
 
      local fcap = io.open("/sys/class/power_supply/" .. adapter .. "/energy_full")
@@ -95,7 +93,7 @@ function show_playlist()
      fcap:close()
      fsta:close()
  end
---}}
+ --}}}
 
 -- get loadaverage and temperature
 --{{
@@ -131,3 +129,4 @@ end
     end
 --}}
 
+-- vim: foldmethod=marker:filetype=lua:expandtab:shiftwidth=2:tabstop=2:softtabstop=2:encoding=utf-8:textwidth=80

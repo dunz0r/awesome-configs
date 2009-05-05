@@ -11,6 +11,8 @@ root.buttons(awful.util.table.join(
 -- {{{ Key bindings
 globalkeys = awful.util.table.join(
     awful.key({ modkey,           }, "Left",   awful.tag.viewprev       ),
+    awful.key({ modkey,  "Shift"  }, "Left",   shifty.shift_prev        ),
+    awful.key({ modkey,  "Shift"  }, "Right",  shifty.shift_next        ),
     awful.key({ modkey,           }, "Right",  awful.tag.viewnext       ),
     awful.key({ modkey,           }, "Escape", awful.tag.history.restore),
 
@@ -44,12 +46,19 @@ globalkeys = awful.util.table.join(
     awful.key({ modkey,           }, "Return", function () awful.util.spawn(terminal) end),
     awful.key({ modkey, "Control" }, "r", awesome.restart),
     awful.key({ modkey, "Shift"   }, "q", awesome.quit),
-    
+
+--[[
     -- MPD Bindings
-    awful.key({ modkey,		  }, "z"      function () mpd.previous () end),
-    awful.key({ modkey,		  }, "x"      function () mpd.toggle_play () end),
-    awful.key({ modkey,		  }, "c"      function () mpd.stop () end),
-    awful.key({ modkey,		  }, "v"      function () mpd.next () end),
+    awful.key({ modkey,           }, "z"      function () mpd.previous() end),
+    awful.key({ modkey,           }, "x"      function () mpd.toggle_play() end),
+    awful.key({ modkey,           }, "c"      function () mpd.stop() end),
+    awful.key({ modkey,           }, "v"      function () mpd.next() end),
+--]]
+
+    awful.key({ modkey            }, "t",           function() shifty.add({ rel_index = 1 }) end),
+    awful.key({ modkey, "Control" }, "t",           function() shifty.add({ rel_index = 1, nopopup = true }) end),
+    awful.key({ modkey            }, "r",           shifty.rename),
+    awful.key({ modkey            }, "w",           shifty.del),
 
     awful.key({ modkey,           }, "l",     function () awful.tag.incmwfact( 0.05)    end),
     awful.key({ modkey,           }, "h",     function () awful.tag.incmwfact(-0.05)    end),
@@ -95,6 +104,7 @@ clientkeys = awful.util.table.join(
 )
 
 -- Compute the maximum number of digit we need, limited to 9
+--[[
 keynumber = 0
 for s = 1, screen.count() do
    keynumber = math.min(9, math.max(#tags[s], keynumber));
@@ -137,9 +147,37 @@ for i = 1, keynumber do
                       end
                    end), function(_, k) table.insert(globalkeys, k) end)
 end
-
+--]]
+for i=1,9 do
+  
+  globalkeys = awful.util.table.join(globalkeys, awful.key({ modkey }, i,
+  function ()
+    local t = awful.tag.viewonly(shifty.getpos(i))
+  end))
+  globalkeys = awful.util.table.join(globalkeys, awful.key({ modkey, "Control" }, i,
+  function ()
+    local t = shifty.getpos(i)
+    t.selected = not t.selected
+  end))
+  globalkeys = awful.util.table.join(globalkeys, awful.key({ modkey, "Control", "Shift" }, i,
+  function ()
+    if client.focus then
+      awful.client.toggletag(shifty.getpos(i))
+    end
+  end))
+  -- move clients to other tags
+  globalkeys = awful.util.table.join(globalkeys, awful.key({ modkey, "Shift" }, i,
+    function ()
+      if client.focus then
+        local t = shifty.getpos(i)
+        awful.client.movetotag(t)
+        awful.tag.viewonly(t)
+      end
+    end))
+end
 -- Set keys
 root.keys(globalkeys)
+shifty.config.globalkeys = globalkeys
+shifty.config.clientkeys = clientkeys
 -- }}}
-
-
+-- vim: foldmethod=marker:filetype=lua:expandtab:shiftwidth=2:tabstop=2:softtabstop=2:encoding=utf-8:textwidth=80

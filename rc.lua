@@ -1,9 +1,14 @@
+--###
+--# awesome config by Gabriel "dunz0r" Fornaeus
+--
 -- Standard awesome library
 require("awful")
 -- Theme handling library
 require("beautiful")
 -- Notification library
 require("naughty")
+-- Dynamic tagging with shifty
+require("lib/shifty")
 -- MPD-library
 require("lib/mpd")
 
@@ -17,6 +22,8 @@ beautiful.init(theme_path)
 
 -- Default applications
 terminal = "urxvtc"
+-- Which browser
+browser = "firefox"
 -- where to paste stuff
 pastebin = os.getenv("HOME") .. ".pastebin"
 -- What is used to paste stuff
@@ -30,7 +37,7 @@ locker = "vlock -n" or "xscreensaver-command -lock"
 -- If you do not like this or do not have such a key,
 -- I suggest you to remap Mod4 to another key using xmodmap or other tools.
 -- However, you can use another modifier like Mod1, but it may interact with others.
-modkey = "Mod1"
+modkey = "Mod4"
 
 -- Table of layouts to cover with awful.layout.inc, order matters.
 layouts =
@@ -71,34 +78,60 @@ floatapps =
 }
 -- Applications to be moved to a pre-defined tag by class or instance.
 -- Use the screen and tags indices.
-
+--[[
 apptags =
 {
-    ["Firefox"] = { screen = 1, tag = 2 },
+    ["Gran Paradiso"] = { screen = 1, tag = 2 },
     ["Xchm"] = { screen = 1, tag = 3 },
     ["apvlv"] = { screen = 1, tag = 3 },
     ["FBReader"] = { screen = 1, tag = 3 },
 }
+--]]
 -- Define if we want to use titlebar on all applications.
 use_titlebar = false
 -- }}}
 
--- {{{ Tags
--- Define tags table.
-tags = {}
-for s = 1, screen.count() do
-    -- Each screen has its own tag table.
-    tags[s] = {}
-    -- Create 9 tags per screen.
-    for tagnumber = 1, 8 do
-        tags[s][tagnumber] = tag(tagnumber)
-        -- Add tags to screen one by one
-        tags[s][tagnumber].screen = s
-        awful.layout.set(layouts[3], tags[s][tagnumber])
-    end
-    -- I'm sure you want to see at least one tag.
-    tags[s][1].selected = true
-end
+--{{{ Shifty
+
+shifty.config.defaults = {
+  layout = "tile.top",
+}
+shifty.config.tags = {
+   ["1:irc"] = { position = 1, screen = 1,                                            },
+   ["2:www"] = { exclusive = true, solitary = true, position = 2, spawn = browser,    },
+  ["3:term"] = { persist = true, position = 3, mwfact = 0.60, layout = "tile",        },
+  ["4:vim"]  = { position = 4, nopopup = true, layout = "tile.top",                   },
+  ["ncmpcpp"] = { nopopup = true, leave_kills = true,                                 },
+     ["p2p"] = { icon = "/usr/share/pixmaps/p2p.png", icon_only = true,               },
+    ["gimp"] = { layout = "tile", mwfact = 0.18, icon="/usr/share/pixmaps/gimp.png",  },
+      ["fs"] = { rel_index = 1,                                                       },
+}
+
+shifty.config.apps = {
+        { match = { "Irssi",        }, tag = "1:irc",        screen = 1,     },
+        { match = {"Gran Paradiso.*", ".*Vimperator"       }, tag = "2:www",                        },
+        { match = {"urxvt"                          }, tag = "3:term",       screen = 1,     },
+        { match = {"term:.*"                          }, tag = "3:term",       screen = 1,     },
+        { match = {".*- VIM"                          }, tag = "4:vim",       screen = 1,     },
+        { match = {"ncmpcpp",             }, tag = "ncmpcpp",                       },
+        { match = {"Live.*",                        }, tag = "live",         nopopup = true, },
+        { match = {"Deluge","rtorrent"              }, tag = "p2p",                          },
+        { match = {"Gimp","Ufraw"                   }, tag = "gimp",                         },
+        { match = {"gimp-image-window"              }, slave = true,                         },
+        { match = {"gqview"                         }, tag = "gqview",                       },
+        { match = { "mc"                       }, tag = "fs",                           },
+        { match = {"gcolor2", "xmag"                }, intrusive = true,                     },
+        { match = {"gcolor2"                        }, geometry = { 100,100,nil,nil },       },
+        { match = {"recordMyDesktop", "MPlayer", "xmag", 
+                                                    }, float = true,                         },
+        { match = { "" }, buttons = {
+                             button({ }, 1, function (c) client.focus = c; c:raise() end),
+                             button({ modkey }, 1, function (c) awful.mouse.client.move() end),
+                             button({ modkey }, 3, awful.mouse.client.resize ), }, },
+}
+
+
+shifty.init()
 -- }}}
 
 -- {{{ Wibox
@@ -120,6 +153,7 @@ mytaglist.buttons = { button({ }, 1, awful.tag.viewonly),
                       button({ modkey }, 3, awful.client.toggletag),
                       button({ }, 4, awful.tag.viewnext),
                       button({ }, 5, awful.tag.viewprev) }
+                      shifty.taglist = mytaglist
 mytasklist = {}
 mytasklist.buttons = { button({ }, 1, function (c) client.focus = c; c:raise() end),
                        button({ }, 3, function () awful.menu.clients({ width=250 }) end),
@@ -167,14 +201,7 @@ tbox = widget({ type = "textbox", align = "right" })
                              button({ }, 5, function () awful.layout.inc(layouts, -1) end) })
     -- Create a taglist widget
     mytaglist[s] = awful.widget.taglist.new(s, awful.widget.taglist.label.all, mytaglist.buttons)
-    -- Create the bottom wibox
-    bwibox = wibox({ position = "right", fg = beautiful.fg_normal, bg = beautiful.bg_normal })
-    	bwibox.widgets = {
-			mytaglist[s],
-			mylayoutbox[s]
-		  }
-	bwibox.screen = s
-    -- Create a tasklist widget
+        -- Create a tasklist widget
     mytasklist[s] = awful.widget.tasklist.new(function(c)
                                                   return awful.widget.tasklist.label.currenttags(c, s)
                                               end, mytasklist.buttons)
@@ -187,24 +214,30 @@ tbox = widget({ type = "textbox", align = "right" })
 			   infobox,
 			   batterybox,
 			   batbar,
+         mytaglist[s],
 			   datebox,
 			   mysystray
 		}
     mywibox[s].screen = s
-end
+    -- Create the bottom wibox
+    bwibox = wibox({ position = "top", fg = beautiful.fg_normal, bg = beautiful.bg_normal })
+    	bwibox.widgets = {
+			mylayoutbox[s],
+			mytasklist[s]
+		  }
+	bwibox.screen = s
 
---{{
+end
+--}}}
+
+--{{{ Load files
 -- Load functions
 loadfile(awful.util.getdir("config") .. "/functions.lua")()
---}}
 
---{{
 -- load keybindings
 loadfile(awful.util.getdir("config") .. "/keybindings.lua")()
---}}
 
---{{
 -- load hooks
 loadfile(awful.util.getdir("config") .. "/hooks.lua")()
---}}
-
+--}}}
+-- vim: foldmethod=marker:filetype=lua:expandtab:shiftwidth=2:tabstop=2:softtabstop=2:encoding=utf-8:textwidth=80

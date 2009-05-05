@@ -18,7 +18,7 @@ module("mpd")
 -- default settings values
 local settings =
 {
-  hostname = "localhost",
+  hostname = "dunz0r.homelinux.net",
   port = 6600
 }
 
@@ -27,6 +27,7 @@ local sock = nil;
 
 -- override default settings values
 function setup(hostname, port, password)
+  settings.password = passwod
   settings.hostname = hostname
   settings.port = port
 end

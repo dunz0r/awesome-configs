@@ -3,7 +3,6 @@
 -- by Gabriel "dunz0r" Fornaeus (gfornaeus{at}gmail.com
 --
 
-
 -- {{{ Hooks
 -- Hook function to execute when focusing a client.
 awful.hooks.focus.register(function (c)
@@ -39,6 +38,7 @@ awful.hooks.mouse_enter.register(function (c)
 end)
 
 -- Hook function to execute when a new client appears.
+--[[
 awful.hooks.manage.register(function (c, startup)
     -- If we are not managing this application at startup,
     -- move it to the screen where the mouse is.
@@ -97,6 +97,7 @@ awful.hooks.manage.register(function (c, startup)
     -- c.size_hints_honor = false
 end)
 
+--]]
 -- Hook function to execute when arranging the screen.
 -- (tag switch, new client, etc)
 awful.hooks.arrange.register(function (screen)
@@ -139,4 +140,5 @@ hook_info()
 awful.hooks.timer.register(3, hook_mpd)
 awful.hooks.timer.register(60, hook_date)
 awful.hooks.timer.register(20, hook_info)
-
+--}}}
+-- vim: foldmethod=marker:filetype=lua:expandtab:shiftwidth=2:tabstop=2:softtabstop=2:encoding=utf-8:textwidth=80
