@@ -25,7 +25,7 @@ beautiful.init(theme_path)
 -- Default applications
 terminal = "urxvtc"
 -- Which browser
-browser = "uzbl --config /home/dunz0r/.config/uzbl/config"
+browser = "uzbl"
 -- where to paste stuff
 pastebin = os.getenv("HOME") .. ".pastebin"
 -- What is used to paste stuff
@@ -78,17 +78,7 @@ floatapps =
     ["Snes9X"] = true,
     ["Add-ons"] = true
 }
--- Applications to be moved to a pre-defined tag by class or instance.
--- Use the screen and tags indices.
---[[
-apptags =
-{
-    ["Gran Paradiso"] = { screen = 1, tag = 2 },
-    ["Xchm"] = { screen = 1, tag = 3 },
-    ["apvlv"] = { screen = 1, tag = 3 },
-    ["FBReader"] = { screen = 1, tag = 3 },
-}
---]]
+
 -- Define if we want to use titlebar on all applications.
 use_titlebar = false
 -- }}}
@@ -99,29 +89,38 @@ shifty.config.defaults = {
   layout = "tiletop",
 }
 shifty.config.tags = {
-   ["1:irc"] = { position = 1, screen = 1, spawn = "urxvtc -name SSH -title Irssi -e ssh -C ninjaloot.se", },
-   ["2:www"] = { exclusive = true, solitary = true, position = 2, spawn = browser,    },
-  ["3:term"] = { persist = true, position = 3, mwfact = 0.60, layout = "tile",        },
-  ["4:vim"]  = { position = 4, nopopup = true, layout = "tile.top",                   },
-  ["ncmpcpp"] = { nopopup = true, leave_kills = true,                                 },
-     ["p2p"] = { icon = "/usr/share/pixmaps/p2p.png", icon_only = true,               },
-    ["gimp"] = { layout = "tile", mwfact = 0.18, icon="/usr/share/pixmaps/gimp.png",  },
-      ["fs"] = { rel_index = 1,                                                       },
+   ["1:irc"] = { position = 1, spawn = "urxvtc -name SSH -title '::irssi::' -e ssh -C ninjaloot.se", },
+   ["2:www"] = { exclusive = true, solitary = true, position = 2, layout = "max", nopopup = true, spawn = browser,    },
+  ["3:term"] = { persist = true, position = 3, layout = "tiletop",        },
+  ["4:vim"]  = { position = 4, nopopup = true, layout = "tiletop", screen = 1,        },
+  ["5:ncmpcpp"] = { nopopup = true, persist = false, leave_kills = true, position = 5, screen = 2, spawn = "urxvtc -name '::ncmpcpp::' -title '::ncmpcpp::' -e ncmpcpp" },
+     [":p2p"] = { icon = "/usr/share/pixmaps/p2p.png", icon_only = true, },
+    [":gimp"] = { layout = "max", icon_only = true, mwfact = 0.18, sweep_delay = 2, exclusive = true, icon="/usr/share/pixmaps/gimp.png", screen = 1,  },
+      [":fs"] = { rel_index = 1, exclusive = false                                           },
+      [":video"] = { layout = "float", screen = 1, },
+      [":Wine"] = { layout = "float", screen = 1, nopopup = true, },
 }
 
 shifty.config.apps = {
-        { match = { "Irssi",        }, tag = "1:irc",        screen = 1,     },
-        { match = {"Gran Paradiso.*", ".*uzbl"       }, tag = "2:www",                        },
-        { match = {"urxvt"                          }, tag = "3:term",       screen = 1,     },
-        { match = {"term:.*"                          }, tag = "3:term",       screen = 1,     },
-        { match = {".*- VIM"                          }, tag = "4:vim",       screen = 1,     },
-        { match = {"ncmpcpp",             }, tag = "ncmpcpp",                       },
-        { match = {"Live.*",                        }, tag = "live",         nopopup = true, },
-        { match = {"Deluge","rtorrent"              }, tag = "p2p",                          },
-        { match = {"Gimp","Ufraw"                   }, tag = "gimp",                         },
+        { match = { "::irssi::.*",        }, tag = "1:irc",        screen = 1,     },
+        { match = {"Gran Paradiso.*", ".*uzbl"       }, tag = "2:www", nopopup = true,       },
+        { match = {"urxvt"                          }, tag = "3:term",      },
+        { match = {"term:.*"                          }, tag = "3:term",     },
+        { match = {".*- VIM"                          }, tag = "4:vim",      },
+        { match = {"::ncmpcpp.*",             }, tag = "5:ncmpcpp",                       },
+        { match = {"MPlayer.*",                        }, tag = ":video", },
+        { match = {"MilkyTracker.*","Sound.racker.*"}, tag = ":TRACKZ",         nopopup = true, },
+        { match = {".*Wine desktop.*"}, tag = ":Wine",         nopopup = true, },
+        { match = {"Deluge","rtorrent"              }, tag = ":p2p",                          },
+        { match = {"Gimp","Ufraw"                   }, tag = ":gimp",                         },
+        { match = { "gimp.toolbox",                     },  slave = true , struts = { right=200 },
+                                                        geometry = {nil,35,200,733}                   },
         { match = {"gimp-image-window"              }, slave = true,                         },
-        { match = {"gqview"                         }, tag = "gqview",                       },
-        { match = { ".*mc"                       }, tag = "fs",                           },
+
+        { match = {"feh.*"                         }, tag = ":feh",                       },
+        { match = { "popterm",                          },  intrusive = true, struts = { bottom = 200 },
+                                                        dockable = true, float = true, sticky = true  },
+        { match = { ".*mc"                       }, tag = ":fs:",                           },
         { match = {"gcolor2", "xmag"                }, intrusive = true,                     },
         { match = {"gcolor2"                        }, geometry = { 100,100,nil,nil },       },
         { match = {"recordMyDesktop", "MPlayer", "xmag", 
@@ -132,11 +131,18 @@ shifty.config.apps = {
                              button({ modkey }, 3, awful.mouse.client.resize ), }, },
 }
 
+
+-- tag defaults
+shifty.config.defaults = {
+  layout = awful.layout.suit.tile.top,
+  ncol = 1,
+  floatBars = true,
+ }
 shifty.config.layouts = layouts
 shifty.init()
 -- }}}
 
--- {{{ widgets
+-- {{{ Widgets
 -- Create a systray
 mysystray = widget({ type = "systray", align = "right" })
 
@@ -188,6 +194,7 @@ batbar.width = 60
 batbar.height = 0.45
 batbar.gap = 1
 batbar.border_width = 1
+batbar.screen = 1
 batbar.border_padding = 0
 batbar.ticks_count = 10
 batbar.ticks_gap = 1
@@ -214,7 +221,7 @@ cpugraphwidget.border_color = '#524E41'
 cpugraphwidget.grow = 'left'
 
 cpugraphwidget:plot_properties_set('cpu', {
-    fg = '#99999',
+    fg = '#999999',
 })
 
 wicked.register(cpugraphwidget, wicked.widgets.cpu, '$1', 1, 'cpu')
@@ -249,29 +256,356 @@ tbox = widget({ type = "textbox", align = "right" })
          cpuwidget,
          cpugraphwidget,
          mytaglist[s],
+         mylayoutbox[s],
+         mytasklist[s],
 			   datebox,
 			   mysystray
 		}
     mywibox[s].screen = s
-    -- Create the bottom wibox
-    bwibox = wibox({ position = "top", fg = beautiful.fg_normal, bg = beautiful.bg_normal })
-    	bwibox.widgets = {
-			mylayoutbox[s],
-			mytasklist[s]
-		  }
-	bwibox.screen = s
-
 end
 --}}}
 
---{{{ Load files
--- Load functions
-loadfile(awful.util.getdir("config") .. "/functions.lua")()
+--{{{ Functions
 
--- load keybindings
-loadfile(awful.util.getdir("config") .. "/keybindings.lua")()
+-- get mpd info
+--{{{ get mpd info
+function get_mpd()
+  local stats = mpd.send("status")
+  if stats.state == "stop" then
+	 now_playing = " stopped"
+  else
+	  if stats.random == "1" then
+		  rand = "(<span color='#FF0000'>R</span>)"
+	  else
+		  rand = ""
+	  end
+	local zstats = mpd.send("playlistid " .. stats.songid)
+	  now_playing = ( zstats.album  or "NA" ) .. "; " .. ( zstats.artist or "NA" ) .. " - " .. (zstats.title or string.gsub(zstats.file, ".*/", "" ) )
+	end
+  now_playing = awful.util.escape(now_playing)
+  return "<span color='#00FF00'><b>np: </b></span>" .. rand .. now_playing .. " | "
+end
+--}}}
 
--- load hooks
-loadfile(awful.util.getdir("config") .. "/hooks.lua")()
+--{{{ Show playlist
+function get_playlist ()
+	local stats = mpd.send("status") 
+	local cur = stats.song
+	v = function ()for i = stats.song-4,stats.song+5 
+		do
+		zstats = mpd.send("playlistinfo " .. i)
+		if zstats.pos == stats.song then
+			print("<span color='#FF0000'>>" .. zstats.pos .. " " .. zstats.artist .. " - " .. (zstats.title or zstats.file) .. "</span>")
+		else
+			print(" " .. zstats.pos .. "." .. zstats.artist .. " - " .. (zstats.title or zstats.file))
+		end
+	end
+end
+        naughty.notify({
+            text = v,
+            timeout = 7,
+	    bg = beautiful.bg_widget,
+            width = 300,
+        })
+end
+--}}}
+
+--{{{ add a todo note
+
+	function addtodo (todo)
+		infobox.text = "| <b><u>todo:</u></b> " .. "<span color='#FF00FF'>" .. awful.util.spawn("todo --add --priority high " .. "'" .. todo .. "'") .. "</span>"
+	end
+--}}}
+
+--{{{ shows batteryinfo for (adapter)
+ function batteryinfo(adapter)
+
+     local fcap = io.open("/sys/class/power_supply/" .. adapter .. "/energy_full")
+     local fcur = io.open("/sys/class/power_supply/" .. adapter .. "/energy_now")
+     local fsta = io.open("/sys/class/power_supply/" .. adapter .. "/status")
+     local cur = fcur:read()
+     local cap = fcap:read()
+     local sta = fsta:read()
+     local battery = math.floor(cur / cap * 100)
+     if sta:match("Charging") then
+         dir = "<span color='#00FF00'>+ </span>"
+     elseif sta:match("Discharging") then
+         dir = "<span color='#FF0000'>- </span>"
+     else
+         dir = "<span color='#FFFF00'>= </span>"
+     end
+     batterybox.text = " | " .. dir
+     batbar:bar_data_add("bat",tonumber(battery) )
+     fcur:close()
+     fcap:close()
+     fsta:close()
+ end
+ --}}}
+
+--{{{ get loadaverage and temperature
+function load_temp()
+	local lf = io.open("/proc/loadavg")
+	local tf = io.open("/proc/acpi/thermal_zone/THRM/temperature")
+	
+	local l = lf:read()
+	local t = tf:read()
+
+	local l = string.match(l, "%d+%.%d%d")
+	local t = string.match(t, "%d+ C")
+	lf:close()
+	tf:close()
+
+	return "<span color='#FF00FF'>"  .. l .. "</span>" .. " | <span color='#FF0000'>" .. t .. "</span>"
+end
+--}}}
+
+--{{{ Show todo
+    function show_todo()
+        local datespec = os.date("*t")
+        datespec = datespec.year * 12 + datespec.month - 1
+        datespec = (datespec % 12 + 1) .. " " .. math.floor(datespec / 12)
+        local todo = awful.util.pread("todo --mono")
+        todo = naughty.notify({
+            text = string.format(os.date("%a, %d %B %Y") .. "\n" .. todo),
+            timeout = 7,
+	    bg = beautiful.bg_widget,
+            width = 300,
+        })
+    end
+--}}}
+--}}}
+
+--{{{ Keybindings
+--
+-- {{{ Mouse bindings
+root.buttons(awful.util.table.join(
+    awful.button({ }, 4, awful.tag.viewnext),
+    awful.button({ }, 5, awful.tag.viewprev)
+))
+-- }}}
+
+-- {{{ Key bindings
+globalkeys = awful.util.table.join(
+    -- Bindings for shifty
+    awful.key({ modkey,           }, "Left",   awful.tag.viewprev       ),
+    awful.key({ modkey,  "Shift"  }, "Left",   shifty.shift_prev        ),
+    awful.key({ modkey,  "Shift"  }, "Right",  shifty.shift_next        ),
+    awful.key({ modkey,           }, "Right",  awful.tag.viewnext       ),
+    awful.key({ modkey,           }, "Escape", awful.tag.history.restore),
+    awful.key({ modkey            }, "t",           function() shifty.add({ rel_index = 1 }) end),
+    awful.key({ modkey, "Control" }, "t",           function() shifty.add({ rel_index = 1, nopopup = true }) end),
+    awful.key({ modkey            }, "r",           shifty.rename),
+    awful.key({ modkey            }, "w",           shifty.delete),
+    awful.key({ modkey,           }, "b",      function() shifty.set(awful.tag.selected(mouse.screen), { screen = awful.util.cycle(mouse.screen + 1, screen.count()) }) end),
+    
+
+    awful.key({ modkey,           }, "j",
+        function ()
+            awful.client.focus.byidx( 1)
+            if client.focus then client.focus:raise() end
+        end),
+    awful.key({ modkey,           }, "k",
+        function ()
+            awful.client.focus.byidx(-1)
+            if client.focus then client.focus:raise() end
+        end),
+
+    -- Layout manipulation
+    awful.key({ modkey, "Shift"   }, "j", function () awful.client.swap.byidx(  1) end),
+    awful.key({ modkey, "Shift"   }, "k", function () awful.client.swap.byidx( -1) end),
+    awful.key({ modkey, "Control" }, "j", function () awful.screen.focus( 1)       end),
+    awful.key({ modkey, "Control" }, "k", function () awful.screen.focus(-1)       end),
+    awful.key({ modkey,           }, "u", awful.client.urgent.jumpto),
+    awful.key({ modkey,           }, "Tab",
+        function ()
+            awful.client.focus.history.previous()
+            if client.focus then
+                client.focus:raise()
+            end
+        end),
+
+    -- Standard program
+    awful.key({ modkey,           }, "Return", function () awful.util.spawn(terminal) end),
+    awful.key({ modkey, "Control" }, "r", awesome.restart),
+    awful.key({ modkey, "Shift"   }, "q", awesome.quit),
+
+    -- MPD Bindings
+    awful.key({ modkey,           }, "z", function () mpd.previous() ; hook_mpd() end),
+    awful.key({ modkey,           }, "x", function () mpd.toggle_play() ; hook_mpd() end),
+    awful.key({ modkey,           }, "c", function () mpd.stop() ; hook_mpd() end),
+    awful.key({ modkey,           }, "v", function () mpd.next() ; hook_mpd() end),
+    awful.key({ modkey,           }, "p", function ()playli = naughty.notify({
+      text = awful.util.eval(get_playlist()),
+        })end),
+    -- Display the todo list
+    awful.key({ modkey,          }, "d",   function () show_todo() end),
+
+    awful.key({ modkey            }, "t",           function() shifty.add({ rel_index = 1 }) end),
+    awful.key({ modkey, "Control" }, "t",           function() shifty.add({ rel_index = 1, nopopup = true }) end),
+    awful.key({ modkey            }, "r",           shifty.rename),
+    awful.key({ modkey            }, "w",           shifty.del),
+    awful.key({ modkey, "Control" }, "o",     function () shifty.set(awful.tag.selected(mouse.screen), { screen = awful.util.cycle(mouse.screen + 1, screen.count()) }) end),
+    awful.key({ modkey,           }, "l",     function () awful.tag.incmwfact( 0.05)    end),
+    awful.key({ modkey,           }, "h",     function () awful.tag.incmwfact(-0.05)    end),
+    awful.key({ modkey, "Shift"   }, "h",     function () awful.tag.incnmaster( 1)      end),
+    awful.key({ modkey, "Shift"   }, "l",     function () awful.tag.incnmaster(-1)      end),
+    awful.key({ modkey, "Control" }, "h",     function () awful.tag.incncol( 1)         end),
+    awful.key({ modkey, "Control" }, "l",     function () awful.tag.incncol(-1)         end),
+    awful.key({ modkey,           }, "space", function () awful.layout.inc(layouts,  1) end),
+    awful.key({ modkey, "Shift"   }, "space", function () awful.layout.inc(layouts, -1) end),
+
+    -- Prompt
+    -- add a tpdp
+   awful.key({ modkey, "Shift" }, "d",
+              function ()
+                  awful.prompt.run({ prompt = "Add Todo Note: " },
+                  mypromptbox[mouse.screen],
+                  addtodo(t), t,
+                  awful.util.getdir("cache") .. "/todos")
+              end),
+   awful.key({ modkey }, "F2",
+              function ()
+                  awful.prompt.run({ fg_cursor = 'orange', bg_cursor = beautiful.bg_normal,
+                  ul_cursor = "single", prompt = "<span color='white'>Run: </span>" },
+                  mypromptbox[mouse.screen],
+                  awful.util.spawn, awful.completion.shell,
+                  awful.util.getdir("cache") .. "/history")
+              end),
+
+    awful.key({ modkey }, "F4",
+              function ()
+                  awful.prompt.run({ prompt = "Run Lua code: " },
+                  mypromptbox[mouse.screen],
+                  awful.util.eval, nil,
+                  awful.util.getdir("cache") .. "/history_eval")
+              end)
+)
+
+-- Client awful tagging: this is useful to tag some clients and then do stuff like move to tag on them
+clientkeys = awful.util.table.join(
+    awful.key({ modkey,           }, "f",      function (c) c.fullscreen = not c.fullscreen  end),
+    awful.key({ modkey, "Shift"   }, "c",      function (c) c:kill()                         end),
+    awful.key({ modkey, "Control" }, "space",  awful.client.floating.toggle                     ),
+    awful.key({ modkey, "Control" }, "Return", function (c) c:swap(awful.client.getmaster()) end),
+    awful.key({ modkey,           }, "o",      awful.client.movetoscreen                        ),
+    awful.key({ modkey, "Shift"   }, "r",      function (c) c:redraw()                       end),
+    awful.key({ modkey }, "t", awful.client.togglemarked),
+    awful.key({ modkey,}, "m",
+        function (c)
+            c.maximized_horizontal = not c.maximized_horizontal
+            c.maximized_vertical   = not c.maximized_vertical
+        end)
+)
+
+for i=1,9 do
+  
+  globalkeys = awful.util.table.join(globalkeys, awful.key({ modkey }, i,
+  function ()
+    local t = awful.tag.viewonly(shifty.getpos(i))
+  end))
+  globalkeys = awful.util.table.join(globalkeys, awful.key({ modkey, "Control" }, i,
+  function ()
+    local t = shifty.getpos(i)
+    t.selected = not t.selected
+  end))
+  globalkeys = awful.util.table.join(globalkeys, awful.key({ modkey, "Control", "Shift" }, i,
+  function ()
+    if client.focus then
+      awful.client.toggletag(shifty.getpos(i))
+    end
+  end))
+  -- move clients to other tags
+  globalkeys = awful.util.table.join(globalkeys, awful.key({ modkey, "Shift" }, i,
+    function ()
+      if client.focus then
+        local t = shifty.getpos(i)
+        awful.client.movetotag(t)
+        awful.tag.viewonly(t)
+      end
+    end))
+end
+-- Set keys
+root.keys(globalkeys)
+shifty.config.globalkeys = globalkeys
+shifty.config.clientkeys = clientkeys
+--}}}
+--}}}
+
+-- {{{ Hooks
+-- Hook function to execute when focusing a client.
+awful.hooks.focus.register(function (c)
+    if not awful.client.ismarked(c) then
+        c.border_color = beautiful.border_focus
+    end
+end)
+
+-- Hook function to execute when unfocusing a client.
+awful.hooks.unfocus.register(function (c)
+    if not awful.client.ismarked(c) then
+        c.border_color = beautiful.border_normal
+    end
+end)
+
+-- Hook function to execute when marking a client
+awful.hooks.marked.register(function (c)
+    c.border_color = beautiful.border_marked
+end)
+
+-- Hook function to execute when unmarking a client.
+awful.hooks.unmarked.register(function (c)
+    c.border_color = beautiful.border_focus
+end)
+
+-- Hook function to execute when the mouse enters a client.
+awful.hooks.mouse_enter.register(function (c)
+    -- Sloppy focus, but disabled for magnifier layout
+    if awful.layout.get(c.screen) ~= awful.layout.suit.magnifier
+        and awful.client.focus.filter(c) then
+        client.focus = c
+    end
+end)
+
+-- Hook function to execute when arranging the screen.
+-- (tag switch, new client, etc)
+awful.hooks.arrange.register(function (screen)
+    local layout = awful.layout.getname(awful.layout.get(screen))
+    if layout and beautiful["layout_" ..layout] then
+        mylayoutbox[screen].image = image(beautiful["layout_" .. layout])
+    else
+        mylayoutbox[screen].image = nil
+    end
+
+    -- Give focus to the latest client in history if no window has focus
+    -- or if the current window is a desktop or a dock one.
+    if not client.focus then
+        local c = awful.client.focus.history.get(screen, 0)
+        if c then client.focus = c end
+    end
+end)
+
+-- Hook called every minute, displays time and date
+function hook_date ()
+    datebox.text = "<big>" .. os.date(" %R ") .. "</big>" .. " <u>" .. os.date("%m-%d") .. "</u>"
+end
+
+-- Hook showing mpd info
+function hook_mpd()
+	mpdbox.text = get_mpd()
+end
+-- Hook for loadavg, temp and battery
+function hook_info()
+	infobox.text = load_temp()
+--	batteryinfo("BAT0")
+end
+
+-- Run some of the hooks at start, so we don't have to wait for them
+-- to execute
+hook_date()
+hook_mpd()
+hook_info()
+-- Set timers for the hooks
+awful.hooks.timer.register(3, hook_mpd)
+awful.hooks.timer.register(60, hook_date)
+awful.hooks.timer.register(20, hook_info)
 --}}}
 -- vim: foldmethod=marker:filetype=lua:expandtab:shiftwidth=2:tabstop=2:softtabstop=2:encoding=utf-8:textwidth=80
