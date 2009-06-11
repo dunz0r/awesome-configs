@@ -1,33 +1,47 @@
 -- Small interface to MusicPD
 -- use luasocket, with a persistant connection to the MPD server.
 --
--- Author: Alexandre "kAworu" Perrin &lt;kaworu at kaworu dot ch&gt;
+-- Author: Alexandre "kAworu" Perrin <kaworu at kaworu dot ch>
 --
 -- based on a netcat version from Steve Jothen <sjothen at gmail dot com>
--- (see "http://github.com/otkrove/ion3-config/tree/master/mpd.lua" 
+-- (see http://github.com/otkrove/ion3-config/tree/master/mpd.lua)
 require("socket")
 
 -- Grab env
 local socket = socket
 local string = string
 local tonumber = tonumber
+local setmetatable = setmetatable
+local os = os
 
 -- Music Player Daemon Lua library.
 module("mpd")
-local settings =
-{
-  hostname = "localhost",
-  port = 6600
-}
 
--- our socket
-local sock = nil;
+MPD = {
+} MPD_mt = { __index = MPD }
 
--- override default settings values
-function setup(hostname, port, password)
-  settings.hostname = hostname
-  settings.port = port
-  settings.password = password
+-- create and return a new mpd client.
+-- the settings argument is a table with theses keys:
+--      hostname: the MPD's host (default localhost)
+--      port:     MPD's port to connect to (default 6600)
+--      desc:     server's description (default hostname)
+--      password: the server's password (default nil, no password)
+--      timeout:  time in sec to wait for connect() and receive() (default 1)
+--      retry:    time in sec to wait before reconnect if error (default 60)
+function new(settings)
+  local client = {}
+  if settings == nil then settings = {} end
+
+  client.hostname = settings.hostname or "localhost"
+  client.port     = settings.port or 6600
+  client.desc     = settings.desc or client.hostname
+  client.password = settings.password
+  client.timeout  = settings.timeout or 1
+  client.retry    = settings.retry or 60
+
+  setmetatable(client, MPD_mt)
+
+  return client
 end
 
 
@@ -40,89 +54,97 @@ end
 --              ...
 --      then the returned table is:
 --      { volume = 20, repeat = 0, random = 0, playlist = 599, ... }
-function send(action)
+function MPD:send(action)
   local command = string.format("%s\n", action)
   local values = {}
 
   -- connect to MPD server if not already done.
-  if not sock then
-    sock = socket.connect(settings.hostname, settings.port)
-    if sock and settings.password then
-      send(string.format("password %s", settings.password))
+  if not self.connected then
+    if not self.last_try or (os.time() - self.last_try) > self.retry then
+      self.socket = socket.tcp()
+      self.socket:settimeout(self.timeout, 't')
+      self.last_try = os.time()
+      self.connected = self.socket:connect(self.hostname, self.port)
+      if self.connected and self.password then
+        self:send(string.format("password %s", self.password))
+      end
     end
   end
 
-  if sock then
-    sock:send(command)
-    local line = sock:receive("*l")
+  if not self.connected then
+    return {}
+  end
 
-    if not line then -- closed (mpd killed?): reset socket and retry
-      sock = nil
-      send(action)
+  self.socket:send(command)
+
+  local line = ""
+  while not line:match("^OK$") do
+    line = self.socket:receive("*l")
+    if not line then -- closed,timeout (mpd killed?)
+      self.connected = false
+      return self:send(action)
     end
 
-    while not line:match("^OK$") or line:match(string.format("unknown command \"%s\"", action)) do
-      local _, _, key, value = string.find(line, "(.-):%s(.+)")
-      if key then
-        values[string.lower(key)] = value
-      end
-      line = sock:receive("*l")
+    if line:match(string.format("^ACK", action)) then
+      return { errormsg = line }
+    end
+
+    local _, _, key, value = string.find(line, "([^:]+):%s(.+)")
+    if key then
+      values[string.lower(key)] = value
     end
   end
 
   return values
 end
 
-function next()
-  send("next")
+function MPD:next()
+  self:send("next")
 end
 
-function previous()
-  send("previous")
+function MPD:previous()
+  self:send("previous")
 end
 
-function pause()
-  send("pause")
-end
-
-function stop()
-  send("stop")
+function MPD:stop()
+  self:send("stop")
 end
 
 -- no need to check the new value, mpd will set the volume in [0,100]
-function volume_up(delta)
-  local stats = send("status")
+function MPD:volume_up(delta)
+  local stats = self:send("status")
   local new_volume = tonumber(stats.volume) + delta
-  send(string.format("setvol %d", new_volume))
+  self:send(string.format("setvol %d", new_volume))
 end
 
-function volume_down(delta)
-  volume_up(-delta)
+function MPD:volume_down(delta)
+  self:volume_up(-delta)
 end
 
-function toggle_random()
-  local stats = send("status")
+function MPD:toggle_random()
+  local stats = self:send("status")
   if tonumber(stats.random) == 0 then
-    send("random 1")
+    self:send("random 1")
   else
-    send("random 0")
+    self:send("random 0")
   end
 end
 
-function toggle_repeat()
-  local stats = send("status")
+function MPD:toggle_repeat()
+  local stats = self:send("status")
   if tonumber(stats["repeat"]) == 0 then
-    send("repeat 1")
+    self:send("repeat 1")
   else
-    send("repeat 0")
+    self:send("repeat 0")
   end
 end
 
-function toggle_play()
-  if send("status").state == "stop" then
-    send("play")
+function MPD:toggle_play()
+  if self:send("status").state == "stop" then
+    self:send("play")
   else
-    send("pause")
+    self:send("pause")
   end
 end
 
+-- vim:filetype=lua:tabstop=8:shiftwidth=2:fdm=marker:
