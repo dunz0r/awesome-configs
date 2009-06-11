@@ -62,7 +62,7 @@ function send(action)
     end
 
     while not line:match("^OK$") or line:match(string.format("unknown command \"%s\"", action)) do
-      local _, _, key, value = string.find(line, "(.+):%s(.+)")
+      local _, _, key, value = string.find(line, "(.-):%s(.+)")
       if key then
         values[string.lower(key)] = value
       end
