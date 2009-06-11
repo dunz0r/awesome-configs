@@ -396,8 +396,7 @@ globalkeys = awful.util.table.join(
     awful.key({ modkey, "Control" }, "t",           function() shifty.add({ rel_index = 1, nopopup = true }) end),
     awful.key({ modkey            }, "r",           shifty.rename),
     awful.key({ modkey            }, "w",           shifty.delete),
-    awful.key({ modkey,           }, "b",      function() shifty.set(awful.tag.selected(mouse.screen), { screen = awful.util.cycle(mouse.screen + 1, screen.count()) }) end),
-    
+    awful.key({ modkey, "Shift"   }, "o",      function() shifty.set(awful.tag.selected(mouse.screen), { screen = awful.util.cycle(screen.count() , mouse.screen + 1) }) end),
 
     awful.key({ modkey,           }, "j",
         function ()
