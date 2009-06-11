@@ -43,19 +43,26 @@ local matchp = ""
 local index_cache = {}
 for i = 1, screen.count() do index_cache[i] = {} end
 
---{{{ name2tag: matches string 'name' to return a tag object 
--- @param name : name of tag to find
--- @param scr : screen to look for tag on
--- @return the tag object, or nil
-function name2tag(name, scr)
+--{{{ name2tags: matches string 'name' to tag objects
+-- @param name : tag name to find
+-- @param scr : screen to look for tags on
+-- @return table of tag objects or nil
+function name2tags(name, scr)
+  local ret = {}
   local a, b = scr or 1, scr or screen.count()
   for s = a, b do
     for i, t in ipairs(screen[s]:tags()) do
       if name == t.name then
-        return t 
-      end 
+        table.insert(ret, t)
+      end
     end
   end
+  if #ret > 0 then return ret end
+end
+
+function name2tag(name, scr, idx)
+ local ts = name2tags(name, scr)
+ if ts then return ts[idx or 1] end
 end
 --}}}
 
@@ -201,6 +208,7 @@ function set(t, args)
 
   -- pick screen and get its tag table
   local scr = args.screen or (not t.screen and preset.screen) or t.screen or mouse.screen
+  if scr > screen.count() then scr = screen.count() end
   if t.screen and scr ~= t.screen then
     tagtoscr(scr, t)
     t.screen = nil
@@ -225,7 +233,7 @@ function set(t, args)
     persist = select{ args.persist, preset.persist, awful.tag.getproperty(t,"persist"), config.defaults.persist },
     nopopup = select{ args.nopopup, preset.nopopup, awful.tag.getproperty(t,"nopopup"), config.defaults.nopopup },
     leave_kills = select{ args.leave_kills, preset.leave_kills, awful.tag.getproperty(t,"leave_kills"), config.defaults.leave_kills },
-    solitary = select{ args.solitary, preset.solitary, awful.tag.getproperty(t,"solitary"), config.defaults.solitary },
+    max_clients = select{ args.max_clients, preset.max_clients, awful.tag.getproperty(t,"max_clients"), config.defaults.max_clients },
     position = select{ args.position, preset.position, guessed_position, awful.tag.getproperty(t,"position" ) },
     icon = select{ args.icon and image(args.icon), preset.icon and image(preset.icon), awful.tag.getproperty(t,"icon"), config.defaults.icon and image(config.defaults.icon) },
     icon_only = select{ args.icon_only, preset.icon_only, awful.tag.getproperty(t,"icon_only"), config.defaults.icon_only },
@@ -341,8 +349,13 @@ function del(tag)
   local t = tag or sel
   local idx = tag2index(scr,t)
 
-  -- return if tag not empty
-  if #(t:clients()) > 0 then return end
+  -- return if tag not empty (except sticky)
+  local clients = t:clients()
+  local sticky = 0
+  for i, c in ipairs(clients) do
+    if c.sticky then sticky = sticky + 1 end
+  end
+  if #clients > sticky then return end
 
   -- store index for later
   index_cache[scr][t.name] = idx
@@ -369,7 +382,8 @@ end
 --            rc.lua
 --@param c : client to be matched
 function match(c, startup)
-  local target_tag, target, nopopup, intrusive, nofocus, run, slave, wfact
+  local nopopup, intrusive, nofocus, run, slave, wfact, struts, geom
+  local target_tag_names, target_tags = {}, {}
   local typ = c.type
   local cls = c.class
   local inst = c.instance
@@ -393,9 +407,15 @@ function match(c, startup)
           (typ and typ:find(w))
         then
           if a.screen then target_screen = a.screen end
-          if a.tag then target_tag = a.tag end
+          if a.tag then
+            if type(a.tag) == "string" then
+              target_tag_names = { a.tag }
+            else
+              target_tag_names = a.tag
+            end
+          end
           if a.float ~= nil then awful.client.floating.set(c, a.float) end
-          if a.geometry ~=nil then c:geometry({ x = a.geometry[1], y = a.geometry[2], width = a.geometry[3], height = a.geometry[4] }) end
+          if a.geometry ~=nil then geom = { x = a.geometry[1], y = a.geometry[2], width = a.geometry[3], height = a.geometry[4] } end
           if a.slave ~=nil then slave = a.slave end
           if a.nopopup ~=nil then nopopup = a.nopopup end
           if a.intrusive ~=nil then intrusive = a.intrusive end
@@ -417,6 +437,7 @@ function match(c, startup)
           if a.run ~= nil then run = a.run end
           if a.sticky ~= nil then c.sticky = a.sticky end
           if a.wfact ~= nil then wfact = a.wfact end
+          if a.struts then struts = a.struts end
         end
       end
     end
@@ -434,41 +455,70 @@ function match(c, startup)
     awful.placement.no_offscreen(c) -- this always seems to stick the client at 0,0 (incl titlebar)
   end
 
-  -- select target tag if unset
-  local sel = awful.tag.selected(target_screen)
-  if not target_tag then
+  -- if not matched to some names try putting client in c.transient_for or current tags
+  local sel = awful.tag.selectedlist(target_screen)
+  if not target_tag_names or #target_tag_names == 0 then
     if c.transient_for then
-      target = c.transient_for:tags()[1] --FIXME: should make target_tag a table
-    elseif sel and (not (awful.tag.getproperty(sel,"exclusive") or awful.tag.getproperty(sel,"solitary")) or intrusive) then
-      target = sel
-    elseif config.guess_name and cls then
-      target_tag = cls:lower()
-    else
-      target_tag = config.default_name
+      target_tags = c.transient_for:tags()
+    elseif #sel > 0 then
+      for i, t in ipairs(sel) do
+        local mc = awful.tag.getproperty(t,"max_clients")
+        if not (awful.tag.getproperty(t,"exclusive") or (mc and mc >= #t:clients())) or intrusive then
+          table.insert(target_tags, t)
+        end
+      end
     end
   end
 
-  -- translate target name to tag object, creating one if needed
-  if target_tag and not target then
-    target = name2tag(target_tag, target_screen) or name2tag(target_tag)
-    if not target or (awful.tag.getproperty(target,"solitary") and #target:clients() > 0 and not intrusive) then
-      target = add({ name = target_tag, noswitch = true, matched = true }) 
+  -- if we still don't know any target names/tags guess name from class or use default
+  if (not target_tag_names or #target_tag_names == 0) and (not target_tags or #target_tags == 0) then
+    if config.guess_name and cls then
+      target_tag_names = { cls:lower() }
+    else
+      target_tag_names = { config.default_name }
+    end
+  end
+
+  -- translate target names to tag objects, creating missing ones
+  if #target_tag_names > 0 and #target_tags == 0 then
+    for i, tn in ipairs(target_tag_names) do
+      local res = {}
+      for j, t in ipairs(name2tags(tn, target_screen) or name2tags(tn) or {}) do
+        local mc = awful.tag.getproperty(t,"max_clients")
+        if not (mc and (#t:clients() >= mc)) or intrusive then
+          table.insert(res, t)
+        end
+      end
+      if #res == 0 then
+        table.insert(target_tags, add({ name = tn, noswitch = true, matched = true }))
+      else
+        target_tags = awful.util.table.join(target_tags, res)
+      end
     end
   end
 
   -- set client's screen/tag if needed
-  if target then target_screen = target.screen end
-  if target_screen and c.screen ~= target_screen then c.screen = target_screen end
-  if target then c:tags({ target }) end
+  target_screen = target_tags[1].screen or target_screen
+  if c.screen ~= target_screen then c.screen = target_screen end
+  c:tags( target_tags )
   if slave then awful.client.setslave(c) end
   if wfact then awful.client.setwfact(wfact, c) end
+  if geom then c:geometry(geom) end
+  if struts then c:struts(struts) end
 
-  -- if target different from current tag, switch or highlight
-  if target and target ~= sel then
-    if not(awful.tag.getproperty(target,"nopopup") or nopopup) then
-      awful.tag.viewonly(target)
-    elseif not startup then
-      c.urgent = true
+  -- switch or highlight
+  local showtags = {}
+  local u = nil
+  if #target_tags > 0 then
+    for i,t in ipairs(target_tags) do
+      if not(awful.tag.getproperty(t,"nopopup") or nopopup) then
+        table.insert(showtags, t)
+      elseif not startup then
+        c.urgent = true
+      end
+    end
+    if #showtags > 0 then
+      awful.tag.viewmore(showtags, c.screen)
     end
   end
 
@@ -494,7 +544,12 @@ end
 function sweep()
   for s = 1, screen.count() do
     for i, t in ipairs(screen[s]:tags()) do
-      if #t:clients() == 0 then
+      local clients = t:clients()
+      local sticky = 0
+      for i, c in ipairs(clients) do
+        if c.sticky then sticky = sticky + 1 end
+      end
+      if #clients == sticky then
         if not awful.tag.getproperty(t,"persist") and awful.tag.getproperty(t,"used") then
           if awful.tag.getproperty(t,"deserted") or not awful.tag.getproperty(t,"leave_kills") then
             local delay = awful.tag.getproperty(t,"sweep_delay")
@@ -611,7 +666,13 @@ function completion(cmd, cur_pos, ncomp, sources, matchers)
     config_apps = function()
       local ret = {}
       for i, p in pairs(config.apps) do
-        if p.tag then table.insert(ret, p.tag) end
+        if p.tag then
+          if type(p.tag) == "string" then
+            table.insert(ret, p.tag)
+          else
+            ret = awful.util.table.join(ret, p.tag)
+          end
+        end
       end
       return ret
     end,

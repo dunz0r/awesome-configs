@@ -14,11 +14,9 @@ local tonumber = tonumber
 
 -- Music Player Daemon Lua library.
 module("mpd")
-
--- default settings values
 local settings =
 {
-  hostname = "dunz0r.homelinux.net",
+  hostname = "localhost",
   port = 6600
 }
 
@@ -27,9 +25,9 @@ local sock = nil;
 
 -- override default settings values
 function setup(hostname, port, password)
-  settings.password = passwod
   settings.hostname = hostname
   settings.port = port
+  settings.password = password
 end
 
 
