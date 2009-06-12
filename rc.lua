@@ -17,7 +17,7 @@ require("wicked")
 -- {{{ Variable definitions
 -- Themes define colours, icons, and wallpapers
 -- Just link your theme to ~/.awesome_theme
-theme_path = os.getenv("HOME") .. "/.awesome_theme"
+theme_path = os.getenv("HOME") .. "/.config/awesome/theme.lua"
 
 -- Actually load theme
 beautiful.init(theme_path)
@@ -27,7 +27,7 @@ terminal = "urxvtc"
 -- Which browser
 browser = "uzbl"
 -- where to paste stuff
-pastebin = os.getenv("HOME") .. ".pastebin2"
+pastebin = os.getenv("HOME") .. ".pastebin"
 -- this is the default level when adding a todo note
 todo_level = "high"
 -- What should we use to lock the display?
