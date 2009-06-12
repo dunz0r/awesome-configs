@@ -10,7 +10,7 @@ require("naughty")
 -- Dynamic tagging with shifty
 require("lib/shifty")
 -- MPD library
-require("lib/mpd") mpc = mpd.new()
+require("lib/mpd") ; mpc = mpd.new()
 -- Wicked
 require("wicked")
 
@@ -217,6 +217,7 @@ cpugraphwidget.width = 45
 cpugraphwidget.bg = '#171717'
 cpugraphwidget.border_color = '#524E41'
 cpugraphwidget.grow = 'left'
+cpugraphwidget.screen = 1
 
 cpugraphwidget:plot_properties_set('cpu', {
     fg = '#999999',
