@@ -10,7 +10,7 @@ require("naughty")
 -- Dynamic tagging with shifty
 require("lib/shifty")
 -- MPD library
-require("lib/mpd")
+require("lib/mpd") mpc = mpd.new()
 -- Wicked
 require("wicked")
 
@@ -27,9 +27,7 @@ terminal = "urxvtc"
 -- Which browser
 browser = "uzbl"
 -- where to paste stuff
-pastebin = os.getenv("HOME") .. ".pastebin"
--- What is used to paste stuff
-pastecommand = "xclip -o >> " .. pastebin
+pastebin = os.getenv("HOME") .. ".pastebin2"
 -- this is the default level when adding a todo note
 todo_level = "high"
 -- What should we use to lock the display?
@@ -270,7 +268,7 @@ end
 -- get mpd info
 --{{{ get mpd info
 function get_mpd()
-  local stats = mpd.send("status")
+  local stats = mpc:send("status")
   if stats.state == "stop" then
 	 now_playing = " stopped"
   else
@@ -279,7 +277,7 @@ function get_mpd()
 	  else
 		  rand = ""
 	  end
-	local zstats = mpd.send("playlistid " .. stats.songid)
+	local zstats = mpc:send("playlistid " .. stats.songid)
 	  now_playing = ( zstats.album  or "NA" ) .. "; " .. ( zstats.artist or "NA" ) .. " - " .. (zstats.title or string.gsub(zstats.file, ".*/", "" ) )
 	end
   now_playing = awful.util.escape(now_playing)
@@ -359,19 +357,35 @@ function load_temp()
 end
 --}}}
 
---{{{ Show todo
+--{{{ Show todos
     function show_todo()
-        local datespec = os.date("*t")
-        datespec = datespec.year * 12 + datespec.month - 1
-        datespec = (datespec % 12 + 1) .. " " .. math.floor(datespec / 12)
         local todo = awful.util.pread("todo --mono")
         todo = naughty.notify({
             text = string.format(os.date("%a, %d %B %Y") .. "\n" .. todo),
-            timeout = 7,
-	    bg = beautiful.bg_widget,
+            timeout = 6,
             width = 300,
         })
     end
+--}}}
+
+--{{{ show paste
+    function show_paste()
+        local paste = selection()
+        paste = naughty.notify({
+            text = paste,
+            timeout = 6,
+            width = 300,
+        })
+    end
+--}}}
+
+--{{{ Paste to (pastefile) or pastebin
+function paste (pastefile)
+  bufcon = selection()
+  pastefile = pastefile or pastebin
+  io.open(pastefile, "a")
+  io.write(bufcon)
+end
 --}}}
 --}}}
 
@@ -396,7 +410,7 @@ globalkeys = awful.util.table.join(
     awful.key({ modkey, "Control" }, "t",           function() shifty.add({ rel_index = 1, nopopup = true }) end),
     awful.key({ modkey            }, "r",           shifty.rename),
     awful.key({ modkey            }, "w",           shifty.delete),
-    awful.key({ modkey, "Shift"   }, "o",      function() shifty.set(awful.tag.selected(mouse.screen), { screen = awful.util.cycle(screen.count() , mouse.screen + 1) }) end),
+    awful.key({ modkey,           }, "b",      function() shifty.set(awful.tag.selected(mouse.screen), { screen = awful.util.cycle(screen.count() , mouse.screen + 1) }) end),
 
     awful.key({ modkey,           }, "j",
         function ()
@@ -429,15 +443,15 @@ globalkeys = awful.util.table.join(
     awful.key({ modkey, "Shift"   }, "q", awesome.quit),
 
     -- MPD Bindings
-    awful.key({ modkey,           }, "z", function () mpd.previous() ; hook_mpd() end),
-    awful.key({ modkey,           }, "x", function () mpd.toggle_play() ; hook_mpd() end),
-    awful.key({ modkey,           }, "c", function () mpd.stop() ; hook_mpd() end),
-    awful.key({ modkey,           }, "v", function () mpd.next() ; hook_mpd() end),
-    awful.key({ modkey,           }, "p", function ()playli = naughty.notify({
-      text = awful.util.eval(get_playlist()),
-        })end),
-    -- Display the todo list
-    awful.key({ modkey,          }, "d",   function () show_todo() end),
+    awful.key({ modkey,           }, "z", function () mpc:previous() ; hook_mpd() end),
+    awful.key({ modkey,           }, "x", function () mpc:toggle_play() ; hook_mpd() end),
+    awful.key({ modkey,           }, "c", function () mpc:stop() ; hook_mpd() end),
+    awful.key({ modkey,           }, "v", function () mpc:next() ; hook_mpd() end),
+   -- Display the todo list
+    awful.key({ modkey,           }, "d",   function () show_todo() end),
+    -- paste to pastebin
+    awful.key({ modkey,           }, "p",   function () paste(pastebin) end),
+    --awful.key({ modkey,           }, "p",   function () show_paste() end),
 
     awful.key({ modkey            }, "t",           function() shifty.add({ rel_index = 1 }) end),
     awful.key({ modkey, "Control" }, "t",           function() shifty.add({ rel_index = 1, nopopup = true }) end),
@@ -454,7 +468,7 @@ globalkeys = awful.util.table.join(
     awful.key({ modkey, "Shift"   }, "space", function () awful.layout.inc(layouts, -1) end),
 
     -- Prompt
-    -- add a tpdp
+    -- add a todo
    awful.key({ modkey, "Shift" }, "d",
               function ()
                   awful.prompt.run({ prompt = "Add Todo Note: " },
