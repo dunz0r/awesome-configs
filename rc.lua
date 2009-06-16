@@ -95,8 +95,9 @@ shifty.config.tags = {
      [":p2p"] = { icon = "/usr/share/pixmaps/p2p.png", icon_only = true, },
     [":gimp"] = { layout = "max", icon_only = true, mwfact = 0.18, sweep_delay = 2, exclusive = true, icon="/usr/share/pixmaps/gimp.png", screen = 1,  },
       [":fs"] = { rel_index = 1, exclusive = false                                           },
+      [":Wine"] = { rel_index = 1, layout = "float", screen = 1, nopopup = true, },
       [":video"] = { layout = "float", screen = 1, },
-      [":Wine"] = { layout = "float", screen = 1, nopopup = true, },
+      [":PDF"] = { layout = "tiletop", },
 }
 
 shifty.config.apps = {
@@ -110,6 +111,7 @@ shifty.config.apps = {
         { match = {"MilkyTracker.*","Sound.racker.*"}, tag = ":TRACKZ",         nopopup = true, },
         { match = {".*Wine desktop.*"}, tag = ":Wine",         nopopup = true, },
         { match = {"Deluge","rtorrent"              }, tag = ":p2p",                          },
+        { match = {"apvlv",                         }, tag = ":PDF"},
         { match = {"Gimp","Ufraw"                   }, tag = ":gimp",                         },
         { match = { "gimp.toolbox",                     },  slave = true , struts = { right=200 },
                                                         geometry = {nil,35,200,733}                   },
@@ -183,7 +185,7 @@ cpuwidget = widget({
         })
 
         wicked.register(cpuwidget, wicked.widgets.cpu,
-            ' <span color="white">CPU:</span> $1%')
+            '$1%')
 -- Create a box for mpd
 mpdbox = widget({ type = "textbox", align = "left" })
 -- Create a bar for battery
@@ -274,15 +276,15 @@ function get_mpd()
 	 now_playing = " stopped"
   else
 	  if stats.random == "1" then
-		  rand = "(<span color='#FF0000'>R</span>)"
+		  rand = "(<b>R</b>)"
 	  else
-		  rand = ""
+		  rand = " "
 	  end
 	local zstats = mpc:send("playlistid " .. stats.songid)
 	  now_playing = ( zstats.album  or "NA" ) .. "; " .. ( zstats.artist or "NA" ) .. " - " .. (zstats.title or string.gsub(zstats.file, ".*/", "" ) )
 	end
   now_playing = awful.util.escape(now_playing)
-  return "<span color='#00FF00'><b>np: </b></span>" .. rand .. now_playing .. " | "
+  return rand .. now_playing .. " | "
 end
 --}}}
 
@@ -411,7 +413,7 @@ globalkeys = awful.util.table.join(
     awful.key({ modkey, "Control" }, "t",           function() shifty.add({ rel_index = 1, nopopup = true }) end),
     awful.key({ modkey            }, "r",           shifty.rename),
     awful.key({ modkey            }, "w",           shifty.delete),
-    awful.key({ modkey,           }, "b",      function() shifty.set(awful.tag.selected(mouse.screen), { screen = awful.util.cycle(screen.count() , mouse.screen + 1) }) end),
+    awful.key({ modkey, "Shift"   }, "o",      function() shifty.set(awful.tag.selected(mouse.screen), { screen = awful.util.cycle(screen.count() , mouse.screen + 1) }) end),
 
     awful.key({ modkey,           }, "j",
         function ()
@@ -480,7 +482,7 @@ globalkeys = awful.util.table.join(
    awful.key({ modkey }, "F2",
               function ()
                   awful.prompt.run({ fg_cursor = 'orange', bg_cursor = beautiful.bg_normal,
-                  ul_cursor = "single", prompt = "<span color='white'>Run: </span>" },
+                  ul_cursor = "single", prompt = "Run: " },
                   mypromptbox[mouse.screen],
                   awful.util.spawn, awful.completion.shell,
                   awful.util.getdir("cache") .. "/history")
