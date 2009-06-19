@@ -93,7 +93,7 @@ shifty.config.tags = {
   ["4:vim"]  = { position = 4, nopopup = true, layout = "tiletop", screen = 1,        },
   ["5:ncmpcpp"] = { nopopup = true, persist = false, leave_kills = true, position = 5, screen = 2, spawn = "urxvtc -name '::ncmpcpp::' -title '::ncmpcpp::' -e ncmpcpp" },
      [":p2p"] = { icon = "/usr/share/pixmaps/p2p.png", icon_only = true, },
-    [":gimp"] = { layout = "max", icon_only = true, mwfact = 0.18, sweep_delay = 2, exclusive = true, icon="/usr/share/pixmaps/gimp.png", screen = 1,  },
+    [":gimp"] = { layout = "float", icon_only = true, mwfact = 0.18, sweep_delay = 2, exclusive = true, icon="/usr/share/pixmaps/gimp.png", screen = 1,  },
       [":fs"] = { rel_index = 1, exclusive = false                                           },
       [":Wine"] = { rel_index = 1, layout = "float", screen = 1, nopopup = true, },
       [":video"] = { layout = "float", screen = 1, },
