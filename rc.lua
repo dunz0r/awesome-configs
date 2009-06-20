@@ -275,16 +275,11 @@ function get_mpd()
   if stats.state == "stop" then
 	 now_playing = " stopped"
   else
-	  if stats.random == "1" then
-		  rand = "(<b>R</b>)"
-	  else
-		  rand = " "
-	  end
-	local zstats = mpc:send("playlistid " .. stats.songid)
+    local zstats = mpc:send("playlistid " .. stats.songid)
 	  now_playing = ( zstats.album  or "NA" ) .. "; " .. ( zstats.artist or "NA" ) .. " - " .. (zstats.title or string.gsub(zstats.file, ".*/", "" ) )
 	end
   now_playing = awful.util.escape(now_playing)
-  return rand .. now_playing .. " | "
+  return now_playing .. " | "
 end
 --}}}
 
@@ -330,9 +325,9 @@ end
      local battery = math.floor(cur / cap * 100)
      if sta:match("Charging") then
          dir = "<span color='#00FF00'>+ </span>"
-     elseif sta:match("Discharging") then
+      elseif sta:match("Discharging") then
          dir = "<span color='#FF0000'>- </span>"
-     else
+       else
          dir = "<span color='#FFFF00'>= </span>"
      end
      batterybox.text = " | " .. dir
@@ -344,9 +339,9 @@ end
  --}}}
 
 --{{{ get loadaverage and temperature
-function load_temp()
+function get_load_temp()
 	local lf = io.open("/proc/loadavg")
-	local tf = io.open("/proc/acpi/thermal_zone/THRM/temperature")
+	local tf = io.open("/proc/acpi/thermal_zone/THM0/temperature")
 	
 	local l = lf:read()
 	local t = tf:read()
@@ -613,7 +608,7 @@ function hook_mpd()
 end
 -- Hook for loadavg, temp and battery
 function hook_info()
-	infobox.text = load_temp()
+	infobox.text = get_load_temp()
   batteryinfo("BAT0")
 end
 
