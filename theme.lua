@@ -34,7 +34,7 @@ theme.menu_height   = 15
 theme.menu_width    = 100
 
 
-theme.wallpaper_cmd = { "feh --bg-scale" .. os.getenv("HOME") .. ".wallpaper" }
+theme.wallpaper_cmd = { "feh --bg-scale /home/dunz0r/.wallpaper" }
 --theme.wallpaper_cmd = { "xsetroot -solid '#524E41'" }
 
 theme.layout_fairh = "/usr/share/awesome/themes/default/layouts/fairhw.png"
