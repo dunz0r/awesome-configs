@@ -37,7 +37,7 @@ locker = "vlock -n" or "xscreensaver-command -lock"
 -- If you do not like this or do not have such a key,
 -- I suggest you to remap Mod4 to another key using xmodmap or other tools.
 -- However, you can use another modifier like Mod1, but it may interact with others.
-modkey = "Mod4"
+modkey = "Mod1"
 
 -- Table of layouts to cover with awful.layout.inc, order matters.
 layouts =
@@ -452,9 +452,12 @@ globalkeys = awful.util.table.join(
     awful.key({ modkey,           }, "v", function () mpc:next() ; hook_mpd() end),
    -- Display the todo list
     awful.key({ modkey,           }, "d",   function () show_todo() end),
-    -- paste to pastebin
-    awful.key({ modkey,           }, "p",   function () paste(pastebin) end),
-    --awful.key({ modkey,           }, "p",   function () show_paste() end),
+  -- Paste content of the xbuffer(with xclip for now)
+    awful.key({ modkey, "Control" }, "p", function ()
+      awful.prompt.run({ prompt = "Paste to: "},
+      mypromptbox[mouse.screen],
+      function (s) awful.util.spawn_with_shell("xclip -o >>" .. s) infobox.text = "| <b><u>xclip:</u></b>" .. execute_command("xclip -o | wc -l") .. " lines paste to <i>" .. s .. "</i>" end,
+      awful.completion.shell) end),
 
     awful.key({ modkey            }, "t",           function() shifty.add({ rel_index = 1 }) end),
     awful.key({ modkey, "Control" }, "t",           function() shifty.add({ rel_index = 1, nopopup = true }) end),
@@ -611,7 +614,7 @@ end
 -- Hook for loadavg, temp and battery
 function hook_info()
 	infobox.text = load_temp()
---	batteryinfo("BAT0")
+  batteryinfo("BAT0")
 end
 
 -- Run some of the hooks at start, so we don't have to wait for them
