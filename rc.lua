@@ -249,7 +249,6 @@ tbox = widget({ type = "textbox", align = "right" })
     mywibox[s] = wibox({ position = "top", fg = beautiful.fg_normal, bg = beautiful.bg_normal })
     -- Add widgets to the wibox - order matters
     mywibox[s].widgets = {
-			   mypromptbox[s],
 			   mpdbox,
 			   infobox,
 			   batterybox,
@@ -257,12 +256,18 @@ tbox = widget({ type = "textbox", align = "right" })
          cpuwidget,
          cpugraphwidget,
          mytaglist[s],
-         mylayoutbox[s],
-         mytasklist[s],
-			   datebox,
+			   mypromptbox[s],
+         datebox,
 			   mysystray
 		}
     mywibox[s].screen = s
+    --the lower wibox
+    bwibox[s] = wibox({ position = "top", fg = beautiful.fg_normal, bg = beautiful.bg_normal })
+    bwibox[s].widgets = {
+        mylayoutbox[s],
+        mytasklist[s]
+    }
+    bwibox[s].screen = s
 end
 --}}}
 
