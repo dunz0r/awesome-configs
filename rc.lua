@@ -292,15 +292,17 @@ end
 function get_playlist ()
 	local stats = mpc:send("status") 
 	local cur = stats.song
+  local list = ""
 	for i = stats.song-4,stats.song+5
 		do
 		zstats = mpc:send("playlistinfo " .. i)
 		if zstats.pos == stats.song then
-			io.write("<span color='#FF0000'>>" .. zstats.pos .. " " .. zstats.artist .. " - " .. (zstats.title or zstats.file) .. "</span>")
+			list = list .. "<span color='#FF0000'> " .. zstats.pos .. " " .. zstats.artist .. " - " .. (zstats.title or zstats.file) .. "</span>\n"
 		else
-			io.write(" " .. zstats.pos .. "." .. zstats.artist .. " - " .. (zstats.title or zstats.file))
+			list = list .. " " .. zstats.pos .. " " .. zstats.artist .. " - " .. (zstats.title or zstats.file) .. "\n"
 		end
 	end
+    return list
 end
 --}}}
 
@@ -612,11 +614,6 @@ function hook_info()
   batteryinfo("BAT0")
 end
 
--- Run some of the hooks at start, so we don't have to wait for them
--- to execute
-hook_date()
-hook_mpd()
-hook_info()
 -- Set timers for the hooks
 awful.hooks.timer.register(3, hook_mpd())
 awful.hooks.timer.register(60, hook_date())
