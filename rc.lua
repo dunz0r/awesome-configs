@@ -37,7 +37,7 @@ locker = "vlock -n" or "xscreensaver-command -lock"
 -- If you do not like this or do not have such a key,
 -- I suggest you to remap Mod4 to another key using xmodmap or other tools.
 -- However, you can use another modifier like Mod1, but it may interact with others.
-modkey = "Mod1"
+modkey = "Mod4"
 
 -- Table of layouts to cover with awful.layout.inc, order matters.
 layouts =
@@ -290,24 +290,17 @@ end
 
 --{{{ Show playlist
 function get_playlist ()
-	local stats = mpd.send("status") 
+	local stats = mpc:send("status") 
 	local cur = stats.song
-	v = function ()for i = stats.song-4,stats.song+5 
+	for i = stats.song-4,stats.song+5
 		do
-		zstats = mpd.send("playlistinfo " .. i)
+		zstats = mpc:send("playlistinfo " .. i)
 		if zstats.pos == stats.song then
-			print("<span color='#FF0000'>>" .. zstats.pos .. " " .. zstats.artist .. " - " .. (zstats.title or zstats.file) .. "</span>")
+			io.write("<span color='#FF0000'>>" .. zstats.pos .. " " .. zstats.artist .. " - " .. (zstats.title or zstats.file) .. "</span>")
 		else
-			print(" " .. zstats.pos .. "." .. zstats.artist .. " - " .. (zstats.title or zstats.file))
+			io.write(" " .. zstats.pos .. "." .. zstats.artist .. " - " .. (zstats.title or zstats.file))
 		end
 	end
-end
-        naughty.notify({
-            text = v,
-            timeout = 7,
-	    bg = beautiful.bg_widget,
-            width = 300,
-        })
 end
 --}}}
 
@@ -346,7 +339,7 @@ end
 --{{{ get loadaverage and temperature
 function get_load_temp()
 	local lf = io.open("/proc/loadavg")
-	local tf = io.open("/proc/acpi/thermal_zone/THM0/temperature")
+	local tf = io.open("/proc/acpi/thermal_zone/THRM/temperature")
 	
 	local l = lf:read()
 	local t = tf:read()
@@ -414,7 +407,9 @@ globalkeys = awful.util.table.join(
     awful.key({ modkey            }, "r",           shifty.rename),
     awful.key({ modkey            }, "w",           shifty.delete),
     awful.key({ modkey, "Shift"   }, "o",      function() shifty.set(awful.tag.selected(mouse.screen), { screen = awful.util.cycle(screen.count() , mouse.screen + 1) }) end),
-
+    awful.key({ modkey,           }, "p",      function() list = naughty.notify({
+                                                          text = get_playlist(),
+                                                          width = 300 }) end),
     awful.key({ modkey,           }, "j",
         function ()
             awful.client.focus.byidx( 1)
@@ -452,7 +447,7 @@ globalkeys = awful.util.table.join(
     awful.key({ modkey,           }, "v", function () mpc:next() ; hook_mpd() end),
    -- Display the todo list
     awful.key({ modkey,           }, "d",   function () show_todo() end),
-  -- Paste content of the xbuffer(with xclip for now)
+   -- Paste content of the xbuffer(with xclip for now)
     awful.key({ modkey, "Control" }, "p", function ()
       awful.prompt.run({ prompt = "Paste to: "},
       mypromptbox[mouse.screen],
@@ -623,8 +618,8 @@ hook_date()
 hook_mpd()
 hook_info()
 -- Set timers for the hooks
-awful.hooks.timer.register(3, hook_mpd)
-awful.hooks.timer.register(60, hook_date)
-awful.hooks.timer.register(20, hook_info)
+awful.hooks.timer.register(3, hook_mpd())
+awful.hooks.timer.register(60, hook_date())
+awful.hooks.timer.register(20, hook_info())
 --}}}
 -- vim: foldmethod=marker:filetype=lua:expandtab:shiftwidth=2:tabstop=2:softtabstop=2:encoding=utf-8:textwidth=80
