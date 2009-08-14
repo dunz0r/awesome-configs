@@ -102,7 +102,7 @@ shifty.config.tags = {
 
 shifty.config.apps = {
         { match = { "::irssi::.*",        }, tag = "1:irc",        screen = 1,     },
-        { match = {"Gran Paradiso.*", ".*uzbl"       }, tag = "2:www", nopopup = true,       },
+        { match = {"Shiretoko.*", "Vimperator.*", ".*uzbl"       }, tag = "2:www", nopopup = true,       },
         { match = {"urxvt"                          }, tag = "3:term",      },
         { match = {"term:.*"                          }, tag = "3:term",     },
         { match = {".*- VIM"                          }, tag = "4:vim",      },
@@ -382,8 +382,10 @@ end
 function paste (pastefile)
   bufcon = selection()
   pastefile = pastefile or pastebin
-  io.open(pastefile, "a")
-  io.write(bufcon)
+  file = io.open("/home/dunz0r/.pastefile", "a")
+  file:write(bufcon)
+  file:close()
+  infobox.text = "wrote X buffer content to" .. pastefile
 end
 --}}}
 --}}}
@@ -449,12 +451,13 @@ globalkeys = awful.util.table.join(
     awful.key({ modkey,           }, "c", function () mpc:stop() ; hook_mpd() end),
     awful.key({ modkey,           }, "v", function () mpc:next() ; hook_mpd() end),
    -- Display the todo list
-    awful.key({ modkey,           }, "d",   function () show_todo() end),
-   -- Paste content of the xbuffer(with xclip for now)
+    awful.key({ modkey,           }, "d", function () show_todo() end),
+   -- Paste content of the xbuffer
+   awful.key({ modkey, "Shift"    }, "p", function () paste() end),
     awful.key({ modkey, "Control" }, "p", function ()
       awful.prompt.run({ prompt = "Paste to: "},
       mypromptbox[mouse.screen],
-      function (s) awful.util.spawn_with_shell("xclip -o >>" .. s) infobox.text = "| <b><u>xclip:</u></b>" .. execute_command("xclip -o | wc -l") .. " lines paste to <i>" .. s .. "</i>" end,
+      function (s) paste(s) infobox.text = "| <b><u>X-selection</u></b> pasted to <i>" .. s .. "</i>" end,
       awful.completion.shell) end),
 
     awful.key({ modkey            }, "t",           function() shifty.add({ rel_index = 1 }) end),
