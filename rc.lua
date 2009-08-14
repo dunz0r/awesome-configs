@@ -112,6 +112,7 @@ shifty.config.apps = {
         { match = {".*Wine desktop.*"}, tag = ":Wine",         nopopup = true, },
         { match = {"Deluge","rtorrent"              }, tag = ":p2p",                          },
         { match = {"apvlv",                         }, tag = ":PDF"},
+        { match = {"Xpdf.*",                         }, tag = ":PDF"},
         { match = {"Gimp","Ufraw"                   }, tag = ":gimp",                         },
         { match = { "gimp.toolbox",                     },  slave = true , struts = { right=200 },
                                                         geometry = {nil,35,200,733}                   },
@@ -297,9 +298,9 @@ function get_playlist ()
 		do
 		zstats = mpc:send("playlistinfo " .. i)
 		if zstats.pos == stats.song then
-			list = list .. "<span color='#FF0000'> " .. zstats.pos .. " " .. zstats.artist .. " - " .. (zstats.title or zstats.file) .. "</span>\n"
+			list = list .. "<span color='#FF0000'> " .. zstats.pos .. ". " .. zstats.artist .. " - " .. (zstats.title or zstats.file) .. "</span>\n"
 		else
-			list = list .. " " .. zstats.pos .. " " .. zstats.artist .. " - " .. (zstats.title or zstats.file) .. "\n"
+			list = list .. " " .. zstats.pos .. ". " .. zstats.artist .. " - " .. (zstats.title or zstats.file) .. "\n"
 		end
 	end
     return list
@@ -615,8 +616,8 @@ function hook_info()
 end
 
 -- Set timers for the hooks
-awful.hooks.timer.register(3, hook_mpd())
-awful.hooks.timer.register(60, hook_date())
-awful.hooks.timer.register(20, hook_info())
+awful.hooks.timer.register(3, hook_mpd)
+awful.hooks.timer.register(60, hook_date)
+awful.hooks.timer.register(20, hook_info)
 --}}}
 -- vim: foldmethod=marker:filetype=lua:expandtab:shiftwidth=2:tabstop=2:softtabstop=2:encoding=utf-8:textwidth=80
