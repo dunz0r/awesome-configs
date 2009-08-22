@@ -4,13 +4,13 @@
 
 theme = {}
 
-theme.font = "Sans 7"
-theme.tasklist_font = "Sans 7"
-theme.titlebar_font = "Sans 7"
+theme.font = "fixed 9"
+theme.tasklist_font = "fixed 9"
+theme.titlebar_font = "fixed 9"
 
-theme.bg_normal     = "#171717"
-theme.bg_focus      = "#524E41"
-theme.bg_urgent     = "#171717"
+theme.bg_normal     = "#333333"
+theme.bg_focus      = "#1793d1"
+theme.bg_urgent     = "#333333"
 
 theme.fg_normal     = "#999999"
 theme.fg_focus      = "#ffffff"
@@ -27,15 +27,16 @@ theme.widget_value = "#555555"
 theme.help_font = "Monospace 6.5"
 theme.help_highlight = theme.fg_urgent
 
-theme.tasklist_floating_icon = "~/.config/awesome/icons/floating.png"
+theme.tasklist_floating_icon = "/usr/share/awesome/themes/default/layouts/floatingw.png"
 
 theme.menu_submenu_icon = "/usr/share/awesome/themes/default/submenu.png"
 theme.menu_height   = 15
 theme.menu_width    = 100
 
 
-theme.wallpaper_cmd = { "feh --bg-scale /home/dunz0r/.wallpaper" }
+--theme.wallpaper_cmd = { "feh --bg-tile /home/dunz0r/.wallpaper" }
 --theme.wallpaper_cmd = { "xsetroot -solid '#524E41'" }
+theme.wallpaper_cmd = { "xsetroot -solid '#333333'" }
 
 theme.layout_fairh = "/usr/share/awesome/themes/default/layouts/fairhw.png"
 theme.layout_fairv = "/usr/share/awesome/themes/default/layouts/fairvw.png"

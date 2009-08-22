@@ -92,6 +92,7 @@ shifty.config.tags = {
   ["3:term"] = { persist = true, position = 3, layout = "tiletop",        },
   ["4:vim"]  = { position = 4, nopopup = true, layout = "tiletop", screen = 1,        },
   ["5:ncmpcpp"] = { nopopup = true, persist = false, leave_kills = true, position = 5, screen = 2, spawn = "urxvtc -name '::ncmpcpp::' -title '::ncmpcpp::' -e ncmpcpp" },
+  ["6:code"] = { persist = true, position = 6, layout = "tiletop",        },
      [":p2p"] = { icon = "/usr/share/pixmaps/p2p.png", icon_only = true, },
     [":gimp"] = { layout = "float", icon_only = true, mwfact = 0.18, sweep_delay = 2, exclusive = true, icon="/usr/share/pixmaps/gimp.png", screen = 1,  },
       [":fs"] = { rel_index = 1, exclusive = false                                           },
@@ -101,11 +102,11 @@ shifty.config.tags = {
 }
 
 shifty.config.apps = {
-        { match = { "::irssi::.*",        }, tag = "1:irc",        screen = 1,     },
+        { match = { "::irssi.*",        }, tag = "1:irc",        screen = 2,     },
         { match = {"Shiretoko.*", "Vimperator.*", ".*uzbl"       }, tag = "2:www", nopopup = true,       },
         { match = {"urxvt"                          }, tag = "3:term",      },
         { match = {"term:.*"                          }, tag = "3:term",     },
-        { match = {".*- VIM"                          }, tag = "4:vim",      },
+        { match = {".*- VIM"                          }, tag = "6:code",      },
         { match = {"::ncmpcpp.*",             }, tag = "5:ncmpcpp",                       },
         { match = {"MPlayer.*",                        }, tag = ":video", },
         { match = {"MilkyTracker.*","Sound.racker.*"}, tag = ":TRACKZ",         nopopup = true, },
@@ -121,7 +122,7 @@ shifty.config.apps = {
         { match = {"feh.*"                         }, tag = ":feh",                       },
         { match = { "popterm",                          },  intrusive = true, struts = { bottom = 200 },
                                                         dockable = true, float = true, sticky = true  },
-        { match = { ".*mc"                       }, tag = ":fs:",                           },
+        { match = { "mc -.+"                       }, tag = ":fs:",                           },
         { match = {"gcolor2", "xmag"                }, intrusive = true,                     },
         { match = {"gcolor2"                        }, geometry = { 100,100,nil,nil },       },
         { match = {"recordMyDesktop", "MPlayer", "xmag", 
@@ -197,8 +198,8 @@ batbar.gap = 1
 batbar.border_width = 1
 batbar.screen = 1
 batbar.border_padding = 0
-batbar.ticks_count = 10
-batbar.ticks_gap = 1
+--batbar.ticks_count = 10
+--batbar.ticks_gap = 1
 batbar:bar_properties_set('bat', {
 
 bg = beautiful.fg_urgent,
@@ -218,6 +219,8 @@ cpugraphwidget = widget({
 cpugraphwidget.height = 0.6
 cpugraphwidget.width = 45
 cpugraphwidget.bg = '#171717'
+cpugraphwidget.fg = '#333333'
+cpugraphwidget.fg_end = '#1793d1'
 cpugraphwidget.border_color = '#524E41'
 cpugraphwidget.grow = 'left'
 cpugraphwidget.screen = 1
@@ -275,7 +278,7 @@ end
 --{{{ Functions
 
 -- get mpd info
---{{{ get mpd info
+--{{{ Get mpd info
 function get_mpd()
   local stats = mpc:send("status")
   if stats.state == "stop" then
@@ -284,7 +287,11 @@ function get_mpd()
     local zstats = mpc:send("playlistid " .. stats.songid)
 	  now_playing = ( zstats.album  or "NA" ) .. "; " .. ( zstats.artist or "NA" ) .. " - " .. (zstats.title or string.gsub(zstats.file, ".*/", "" ) )
 	end
-  now_playing = awful.util.escape(now_playing)
+  if stats.state == "pause" then
+    now_playing = "<span color='#404040'>" .. awful.util.escape(now_playing) .. "</span>"
+  else
+    now_playing = awful.util.escape(now_playing)
+  end
   return now_playing .. " | "
 end
 --}}}
@@ -307,14 +314,14 @@ function get_playlist ()
 end
 --}}}
 
---{{{ add a todo note
+--{{{ Add a todo note
 
 	function addtodo (todo)
 		infobox.text = "| <b><u>todo:</u></b> " .. "<span color='#FF00FF'>" .. awful.util.spawn("todo --add --priority high " .. "'" .. todo .. "'") .. "</span>"
 	end
 --}}}
 
---{{{ shows batteryinfo for (adapter)
+--{{{ Shows batteryinfo for (adapter)
  function batteryinfo(adapter)
 
      local fcap = io.open("/sys/class/power_supply/" .. adapter .. "/energy_full")
@@ -325,11 +332,11 @@ end
      local sta = fsta:read()
      local battery = math.floor(cur / cap * 100)
      if sta:match("Charging") then
-         dir = "<span color='#00FF00'>+ </span>"
+         dir = "+ "
       elseif sta:match("Discharging") then
-         dir = "<span color='#FF0000'>- </span>"
+         dir = "- "
        else
-         dir = "<span color='#FFFF00'>= </span>"
+         dir = "= "
      end
      batterybox.text = " | " .. dir
      batbar:bar_data_add("bat",tonumber(battery) )
@@ -352,7 +359,7 @@ function get_load_temp()
 	lf:close()
 	tf:close()
 
-	return "<span color='#FF00FF'>"  .. l .. "</span>" .. " | <span color='#FF0000'>" .. t .. "</span>"
+	return l .. " | " .. t .. " "
 end
 --}}}
 
@@ -367,7 +374,7 @@ end
     end
 --}}}
 
---{{{ show paste
+--{{{ Show paste
     function show_paste()
         local paste = selection()
         paste = naughty.notify({
@@ -388,10 +395,23 @@ function paste (pastefile)
   infobox.text = "wrote X buffer content to" .. pastefile
 end
 --}}}
+
+--{{{ Open stuff with uzbl
+function uzbl_prompt(prompt, text, socket, command)
+      if command then
+        -- if a command prefix is provided
+        command = command .. ' '
+      end
+    awful.prompt.run({prompt=prompt, text=text},
+        mypromptbox[mouse.screen],
+        function(input)
+            awful.util.spawn(string.format("uzblctrl -s '%s' -c '%s%s'", socket, command, input))
+        end)
+end
+--}}}
 --}}}
 
 --{{{ Keybindings
---
 -- {{{ Mouse bindings
 root.buttons(awful.util.table.join(
     awful.button({ }, 4, awful.tag.viewnext),
@@ -454,11 +474,13 @@ globalkeys = awful.util.table.join(
     awful.key({ modkey,           }, "d", function () show_todo() end),
    -- Paste content of the xbuffer
    awful.key({ modkey, "Shift"    }, "p", function () paste() end),
-    awful.key({ modkey, "Control" }, "p", function ()
+   awful.key({ modkey, "Control"  }, "p", function ()
       awful.prompt.run({ prompt = "Paste to: "},
       mypromptbox[mouse.screen],
       function (s) paste(s) infobox.text = "| <b><u>X-selection</u></b> pasted to <i>" .. s .. "</i>" end,
       awful.completion.shell) end),
+  -- Lock the screen
+    awful.key({ modkey,           }, "Scroll_Lock", function () awful.util.spawn(locker) end),
 
     awful.key({ modkey            }, "t",           function() shifty.add({ rel_index = 1 }) end),
     awful.key({ modkey, "Control" }, "t",           function() shifty.add({ rel_index = 1, nopopup = true }) end),
@@ -615,12 +637,15 @@ end
 -- Hook for loadavg, temp and battery
 function hook_info()
 	infobox.text = get_load_temp()
-  batteryinfo("BAT0")
+  --batteryinfo("BAT0")
 end
 
 -- Set timers for the hooks
 awful.hooks.timer.register(3, hook_mpd)
 awful.hooks.timer.register(60, hook_date)
 awful.hooks.timer.register(20, hook_info)
+-- run some of the hooks so we don't have to wait
+hook_date()
+hook_info()
 --}}}
 -- vim: foldmethod=marker:filetype=lua:expandtab:shiftwidth=2:tabstop=2:softtabstop=2:encoding=utf-8:textwidth=80
