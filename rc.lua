@@ -90,11 +90,10 @@ shifty.config.tags = {
    ["1:irc"] = { position = 1, spawn = "urxvtc -name SSH -title '::irssi::' -e ssh -C ninjaloot.se", },
    ["2:www"] = { exclusive = true, solitary = true, position = 2, layout = "max", nopopup = true, spawn = browser,    },
   ["3:term"] = { persist = true, position = 3, layout = "tiletop",        },
-  ["4:vim"]  = { position = 4, nopopup = true, layout = "tiletop", screen = 1,        },
   ["5:ncmpcpp"] = { nopopup = true, persist = false, leave_kills = true, position = 5, screen = 2, spawn = "urxvtc -name '::ncmpcpp::' -title '::ncmpcpp::' -e ncmpcpp" },
-  ["6:code"] = { persist = true, position = 6, layout = "tiletop",        },
+  ["6:code"] = { spawn = "urxvtc -name ' - VIM' -title ' - VIM' -e vim", persist = true, nopopu = true, position = 6, layout = "tiletop",        },
      [":p2p"] = { icon = "/usr/share/pixmaps/p2p.png", icon_only = true, },
-    [":gimp"] = { layout = "float", icon_only = true, mwfact = 0.18, sweep_delay = 2, exclusive = true, icon="/usr/share/pixmaps/gimp.png", screen = 1,  },
+    [":gimp"] = { spawn = "gimp", layout = "max", icon_only = true, mwfact = 0.18, sweep_delay = 2, exclusive = true, icon="/usr/share/pixmaps/gimp.png", screen = 1,  },
       [":fs"] = { rel_index = 1, exclusive = false                                           },
       [":Wine"] = { rel_index = 1, layout = "float", screen = 1, nopopup = true, },
       [":video"] = { layout = "float", screen = 1, },
@@ -103,10 +102,10 @@ shifty.config.tags = {
 
 shifty.config.apps = {
         { match = { "::irssi.*",        }, tag = "1:irc",        screen = 2,     },
-        { match = {"Shiretoko.*", "Vimperator.*", ".*uzbl"       }, tag = "2:www", nopopup = true,       },
+        { match = {"Shiretoko.*", "Vimperator.*", "Uzbl.*"       }, tag = "2:www", nopopup = true,       },
         { match = {"urxvt"                          }, tag = "3:term",      },
         { match = {"term:.*"                          }, tag = "3:term",     },
-        { match = {".*- VIM"                          }, tag = "6:code",      },
+        { match = {".* - VIM"                          }, tag = "6:code",      },
         { match = {"::ncmpcpp.*",             }, tag = "5:ncmpcpp",                       },
         { match = {"MPlayer.*",                        }, tag = ":video", },
         { match = {"MilkyTracker.*","Sound.racker.*"}, tag = ":TRACKZ",         nopopup = true, },
@@ -117,7 +116,7 @@ shifty.config.apps = {
         { match = {"Gimp","Ufraw"                   }, tag = ":gimp",                         },
         { match = { "gimp.toolbox",                     },  slave = true , struts = { right=200 },
                                                         geometry = {nil,35,200,733}                   },
-        { match = {"gimp-image-window"              }, slave = true,                         },
+        { match = {"gimp-image-window"              }, master = true,                         },
 
         { match = {"feh.*"                         }, tag = ":feh",                       },
         { match = { "popterm",                          },  intrusive = true, struts = { bottom = 200 },
@@ -127,11 +126,13 @@ shifty.config.apps = {
         { match = {"gcolor2"                        }, geometry = { 100,100,nil,nil },       },
         { match = {"recordMyDesktop", "MPlayer", "xmag", 
                                                     }, float = true,                         },
-        { match = { "" }, buttons = {
+        { match = { "" }, honorsizehints= true,
+                            buttons = {
                              button({ }, 1, function (c) client.focus = c; c:raise() end),
                              button({ modkey }, 1, function (c) awful.mouse.client.move() end),
                              button({ modkey }, 3, awful.mouse.client.resize ), }, },
-}
+
+        }
 
 
 -- tag defaults
@@ -389,10 +390,10 @@ end
 function paste (pastefile)
   bufcon = selection()
   pastefile = pastefile or pastebin
-  file = io.open("/home/dunz0r/.pastefile", "a")
+  file = io.open(pastefile, "a")
   file:write(bufcon)
   file:close()
-  infobox.text = "wrote X buffer content to" .. pastefile
+  infobox.text = "wrote X buffer content to " .. pastefile
 end
 --}}}
 
@@ -451,7 +452,7 @@ globalkeys = awful.util.table.join(
     awful.key({ modkey, "Shift"   }, "k", function () awful.client.swap.byidx( -1) end),
     awful.key({ modkey, "Control" }, "j", function () awful.screen.focus( 1)       end),
     awful.key({ modkey, "Control" }, "k", function () awful.screen.focus(-1)       end),
-    awful.key({ modkey,           }, "u", awful.client.urgent.jumpto),
+    awful.key({ modkey, "Shift"   }, "u", awful.client.urgent.jumpto),
     awful.key({ modkey,           }, "Tab",
         function ()
             awful.client.focus.history.previous()
@@ -472,12 +473,14 @@ globalkeys = awful.util.table.join(
     awful.key({ modkey,           }, "v", function () mpc:next() ; hook_mpd() end),
    -- Display the todo list
     awful.key({ modkey,           }, "d", function () show_todo() end),
+   -- Open with uzbl
+   awful.key({ modkey,            }, "u", function () awful.util.spawn(browser .. selection()) end),
    -- Paste content of the xbuffer
-   awful.key({ modkey, "Shift"    }, "p", function () paste() end),
+   awful.key({ modkey, "Shift"    }, "p", function () paste("/home/dunz0r/.pastebin") end),
    awful.key({ modkey, "Control"  }, "p", function ()
       awful.prompt.run({ prompt = "Paste to: "},
       mypromptbox[mouse.screen],
-      function (s) paste(s) infobox.text = "| <b><u>X-selection</u></b> pasted to <i>" .. s .. "</i>" end,
+      function (s) paste(s) end,
       awful.completion.shell) end),
   -- Lock the screen
     awful.key({ modkey,           }, "Scroll_Lock", function () awful.util.spawn(locker) end),
