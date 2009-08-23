@@ -17,8 +17,8 @@ theme.fg_focus      = "#ffffff"
 theme.fg_urgent     = "#ffc500"
 
 theme.border_width  = 1
-theme.border_normal = "#151515"
-theme.border_focus  = "#524E41"
+theme.border_normal = "#333333"
+theme.border_focus  = "#1793d1"
 theme.border_marked = "#91231c"
 
 theme.widget_label = "#333333"
