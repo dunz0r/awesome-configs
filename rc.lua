@@ -25,7 +25,7 @@ beautiful.init(theme_path)
 -- Default applications
 terminal = "urxvtc"
 -- Which browser
-browser = "uzbl"
+browser = "/home/dunz0r/.local/share/uzbl/scripts/uzbl_tabbed.py"
 -- where to paste stuff
 pastebin = os.getenv("HOME") .. ".pastebin"
 -- this is the default level when adding a todo note
@@ -91,7 +91,7 @@ shifty.config.tags = {
    ["2:www"] = { exclusive = true, solitary = true, position = 2, layout = "max", nopopup = true, spawn = browser,    },
   ["3:term"] = { persist = true, position = 3, layout = "tiletop",        },
   ["5:ncmpcpp"] = { nopopup = true, persist = false, leave_kills = true, position = 5, screen = 2, spawn = "urxvtc -name '::ncmpcpp::' -title '::ncmpcpp::' -e ncmpcpp" },
-  ["6:code"] = { spawn = "urxvtc -name ' - VIM' -title ' - VIM' -e vim", persist = true, nopopu = true, position = 6, layout = "tiletop",        },
+  ["6:code"] = { spawn = "urxvtc -name ' - VIM' -title ' - VIM' -e vim", persist = true, nopopup = true, position = 6, layout = "tiletop",        },
      [":p2p"] = { icon = "/usr/share/pixmaps/p2p.png", icon_only = true, },
     [":gimp"] = { spawn = "gimp", layout = "max", icon_only = true, mwfact = 0.18, sweep_delay = 2, exclusive = true, icon="/usr/share/pixmaps/gimp.png", screen = 1,  },
       [":fs"] = { rel_index = 1, exclusive = false                                           },
@@ -109,7 +109,7 @@ shifty.config.apps = {
         { match = {"::ncmpcpp.*",             }, tag = "5:ncmpcpp",                       },
         { match = {"MPlayer.*",                        }, tag = ":video", },
         { match = {"MilkyTracker.*","Sound.racker.*"}, tag = ":TRACKZ",         nopopup = true, },
-        { match = {".*Wine desktop.*"}, tag = ":Wine",         nopopup = true, },
+        { match = {".* Wine desktop"}, tag = ":Wine",         nopopup = true, },
         { match = {"Deluge","rtorrent"              }, tag = ":p2p",                          },
         { match = {"apvlv",                         }, tag = ":PDF"},
         { match = {"Xpdf.*",                         }, tag = ":PDF"},
