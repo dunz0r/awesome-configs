@@ -434,7 +434,7 @@ globalkeys = awful.util.table.join(
     awful.key({ modkey            }, "w",           shifty.delete),
     awful.key({ modkey, "Shift"   }, "o",      function() shifty.set(awful.tag.selected(mouse.screen), { screen = awful.util.cycle(screen.count() , mouse.screen + 1) }) end),
     awful.key({ modkey,           }, "p",      function() list = naughty.notify({
-                                                          text = awesome.util.escape(get_playlist()),
+                                                          text = awful.util.escape(get_playlist()),
                                                           width = 300 }) end),
     awful.key({ modkey,           }, "j",
         function ()
