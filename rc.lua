@@ -11,6 +11,14 @@ require("naughty")
 require("lib/shifty")
 -- MPD library
 require("lib/mpd") ; mpc = mpd.new()
+
+--[[ {{{ Obvious
+require("obvious")
+ -- The cpu widget
+ require("obvious.cpu")
+-- }}}
+--]]
+
 -- Wicked
 require("wicked")
 
@@ -25,7 +33,7 @@ beautiful.init(theme_path)
 -- Default applications
 terminal = "urxvtc"
 -- Which browser
-browser = "/home/dunz0r/.local/share/uzbl/scripts/uzbl_tabbed.py"
+browser = "uzbl_tabbed.py"
 -- where to paste stuff
 pastebin = os.getenv("HOME") .. ".pastebin"
 -- this is the default level when adding a todo note
@@ -157,8 +165,6 @@ mylayoutbox = {}
 batterybox = {}
 mpdbox = {}
 batbar = {}
-cpuwidget = {}
-cpugraphwdiget = {}
 mytaglist = {}
 mytaglist.buttons = { button({ }, 1, awful.tag.viewonly),
                       button({ modkey }, 1, awful.client.movetotag),
@@ -181,14 +187,12 @@ for s = 1, screen.count() do
 batterybox = widget({ type = "textbox" })
 -- Create an info box
 infobox = widget({ type = "textbox", align = "left" })
--- Create a cpuwidget
+--[[ Create a cpuwidget
 cpuwidget = widget({
       type = 'textbox',
           name = 'cpuwidget'
         })
-
-        wicked.register(cpuwidget, wicked.widgets.cpu,
-            '$1%')
+--]]
 -- Create a box for mpd
 mpdbox = widget({ type = "textbox", align = "left" })
 -- Create a bar for battery
@@ -211,7 +215,7 @@ reverse = false,
 min_value = 0,
 max_value = 100
 })
--- Create a cpugraph widget
+--[[ Create a cpugraph widget
 cpugraphwidget = widget({
     type = 'graph',
     name = 'cpugraphwidget'
@@ -229,8 +233,7 @@ cpugraphwidget.screen = 1
 cpugraphwidget:plot_properties_set('cpu', {
     fg = '#999999',
 })
-
-wicked.register(cpugraphwidget, wicked.widgets.cpu, '$1', 1, 'cpu')
+--]]
 
 -- Create a datebox widget
 datebox = widget({ type = "textbox", align = "right" })
@@ -258,8 +261,6 @@ tbox = widget({ type = "textbox", align = "right" })
 			   infobox,
 			   batterybox,
 			   batbar,
-         cpuwidget,
-         cpugraphwidget,
          mytaglist[s],
 			   mypromptbox[s],
          datebox,
@@ -278,7 +279,6 @@ end
 
 --{{{ Functions
 
--- get mpd info
 --{{{ Get mpd info
 function get_mpd()
   local stats = mpc:send("status")
@@ -297,9 +297,9 @@ function get_mpd()
 end
 --}}}
 
---{{{ Show playlist
+--{{{ Get playlist
 function get_playlist ()
-	local stats = mpc:send("status") 
+	local stats = mpc:send("status")
 	local cur = stats.song
   local list = ""
 	for i = stats.song-4,stats.song+5
@@ -434,7 +434,7 @@ globalkeys = awful.util.table.join(
     awful.key({ modkey            }, "w",           shifty.delete),
     awful.key({ modkey, "Shift"   }, "o",      function() shifty.set(awful.tag.selected(mouse.screen), { screen = awful.util.cycle(screen.count() , mouse.screen + 1) }) end),
     awful.key({ modkey,           }, "p",      function() list = naughty.notify({
-                                                          text = get_playlist(),
+                                                          text = awesome.util.escape(get_playlist()),
                                                           width = 300 }) end),
     awful.key({ modkey,           }, "j",
         function ()
@@ -474,11 +474,11 @@ globalkeys = awful.util.table.join(
    -- Display the todo list
     awful.key({ modkey,           }, "d", function () show_todo() end),
    -- Open with uzbl
-   awful.key({ modkey,            }, "u", function () awful.util.spawn(browser .. selection()) end),
+   awful.key({ modkey, "Shift"    }, "u", function () awful.util.spawn(browser .. selection()) end),
    -- Paste content of the xbuffer
    awful.key({ modkey, "Shift"    }, "p", function () paste("/home/dunz0r/.pastebin") end),
    awful.key({ modkey, "Control"  }, "p", function ()
-      awful.prompt.run({ prompt = "Paste to: "},
+      awful.prompt.run({ prompt = "<b>Paste to:</b> "},
       mypromptbox[mouse.screen],
       function (s) paste(s) end,
       awful.completion.shell) end),
