@@ -306,9 +306,9 @@ function get_playlist ()
 		do
 		zstats = mpc:send("playlistinfo " .. i)
 		if zstats.pos == stats.song then
-			list = list .. "<span color='#FF0000'> " .. zstats.pos .. ". " .. zstats.artist .. " - " .. (zstats.title or zstats.file) .. "</span>\n"
+			list = list .. "<span color='#FF0000'> " .. zstats.pos .. ". " .. awful.util.escape(zstats.artist .. " - " .. (zstats.title or zstats.file)) .. "</span>\n"
 		else
-			list = list .. " " .. zstats.pos .. ". " .. zstats.artist .. " - " .. (zstats.title or zstats.file) .. "\n"
+			list = list .. " " .. zstats.pos .. ". " .. awful.util.escape(zstats.artist .. " - " .. (zstats.title or zstats.file) ) .. "\n"
 		end
 	end
     return list
@@ -434,7 +434,7 @@ globalkeys = awful.util.table.join(
     awful.key({ modkey            }, "w",           shifty.delete),
     awful.key({ modkey, "Shift"   }, "o",      function() shifty.set(awful.tag.selected(mouse.screen), { screen = awful.util.cycle(screen.count() , mouse.screen + 1) }) end),
     awful.key({ modkey,           }, "p",      function() list = naughty.notify({
-                                                          text = awful.util.escape(get_playlist()),
+                                                          text = get_playlist(),
                                                           width = 300 }) end),
     awful.key({ modkey,           }, "j",
         function ()
