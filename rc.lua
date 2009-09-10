@@ -42,6 +42,10 @@ pastebin = os.getenv("HOME") .. ".pastebin"
 todo_level = "high"
 -- What should we use to lock the display?
 locker = "vlock -n" or "xscreensaver-command -lock"
+-- Name of our battery
+bat_adp = "BAT0"
+-- Which thermal sensor should we monitor?
+thermal_sensor = "THRM"
 -- Default modkey.                                                l
 -- Usually, Mod4 is the key with a logo between Control and Alt.
 -- If you do not like this or do not have such a key,
@@ -286,18 +290,23 @@ end
 --{{{ Get mpd info
 function get_mpd()
   local stats = mpc:send("status")
-  if stats.state == "stop" then
-	 now_playing = " stopped"
-  else
-    local zstats = mpc:send("playlistid " .. stats.songid)
-	  now_playing = ( zstats.album  or "NA" ) .. "; " .. ( zstats.artist or "NA" ) .. " - " .. (zstats.title or string.gsub(zstats.file, ".*/", "" ) )
-	end
-  if stats.state == "pause" then
-    now_playing = "<span color='#505050'>" .. awful.util.escape(now_playing) .. "</span>"
-  else
-    now_playing = awful.util.escape(now_playing)
-  end
-  return now_playing .. " | "
+   if stats then
+   if stats.state == "stop" then
+  	 now_playing = " stopped"
+   else
+     local zstats = mpc:send("playlistid " .. stats.songid)
+  	  now_playing = ( zstats.album  or "NA" ) .. "; " .. ( zstats.artist or "NA" ) .. " - " .. (zstats.title or string.gsub(zstats.file, ".*/", "" ) )
+  	end
+   if stats.state == "pause" then
+     now_playing = "<span color='#505050'>" .. awful.util.escape(now_playing) .. "</span>"
+   else
+     now_playing = awful.util.escape(now_playing)
+   end
+   mpd_text = now_playing .. " | "
+  else 
+   mpd_text = "MPD not running? | "
+ end
+return mpd_text
 end
 --}}}
 
@@ -352,9 +361,9 @@ end
  --}}}
 
 --{{{ get loadaverage and temperature
-function get_load_temp()
+function get_load_temp(sensor)
 	local lf = io.open("/proc/loadavg")
-	local tf = io.open("/proc/acpi/thermal_zone/THRM/temperature")
+	local tf = io.open("/proc/acpi/thermal_zone/" .. sensor .. "/temperature")
 	
 	local l = lf:read()
 	local t = tf:read()
@@ -662,8 +671,8 @@ function hook_mpd()
 end
 -- Hook for loadavg, temp and battery
 function hook_info()
-	infobox.text = get_load_temp()
-  --batteryinfo("BAT0")
+	infobox.text = get_load_temp(thermal_sensor)
+  --batteryinfo("bat_adp")
 end
 
 -- Set timers for the hooks
@@ -673,5 +682,6 @@ awful.hooks.timer.register(20, hook_info)
 -- run some of the hooks so we don't have to wait
 hook_date()
 hook_info()
+hook_mpd()
 --}}}
 -- vim: foldmethod=marker:filetype=lua:expandtab:shiftwidth=2:tabstop=2:softtabstop=2:encoding=utf-8:textwidth=80
