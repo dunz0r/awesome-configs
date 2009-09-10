@@ -16,8 +16,8 @@ require("lib/mpd") ; mpc = mpd.new()
 require("obvious")
  -- The cpu widget
  require("obvious.cpu")
--- }}}
 --]]
+-- }}}
 
 -- Wicked
 require("wicked")
@@ -32,8 +32,10 @@ beautiful.init(theme_path)
 
 -- Default applications
 terminal = "urxvtc"
+-- Editor to use
+editor = "urxvtc -name 'VIM' -title ' - VIM' -e vim"
 -- Which browser
-browser = "uzbl_tabbed.py"
+browser = "exec uzbl_tabbed.py"
 -- where to paste stuff
 pastebin = os.getenv("HOME") .. ".pastebin"
 -- this is the default level when adding a todo note
@@ -82,7 +84,8 @@ floatapps =
     ["XClipboard"] = true,
     ["Imagemagick"] = true,
     ["Snes9X"] = true,
-    ["Add-ons"] = true
+    ["Add-ons"] = true,
+    ["Wine desktop"] = true
 }
 
 -- Define if we want to use titlebar on all applications.
@@ -95,13 +98,14 @@ shifty.config.defaults = {
   layout = "tiletop",
 }
 shifty.config.tags = {
-   ["1:irc"] = { position = 1, spawn = "urxvtc -name SSH -title '::irssi::' -e ssh -C ninjaloot.se", },
+   ["1:irc"] = { position = 1, screen = 2, spawn = "urxvtc -name SSH -title '::irssi::' -e ssh -C ninjaloot.se", },
    ["2:www"] = { exclusive = true, solitary = true, position = 2, layout = "max", nopopup = true, spawn = browser,    },
   ["3:term"] = { persist = true, position = 3, layout = "tiletop",        },
   ["5:ncmpcpp"] = { nopopup = true, persist = false, leave_kills = true, position = 5, screen = 2, spawn = "urxvtc -name '::ncmpcpp::' -title '::ncmpcpp::' -e ncmpcpp" },
-  ["6:code"] = { spawn = "urxvtc -name ' - VIM' -title ' - VIM' -e vim", persist = true, nopopup = true, position = 6, layout = "tiletop",        },
+  ["6:code"] = { spawn = editor, persist = true, nopopup = true, position = 6, layout = "fullscreen",        },
      [":p2p"] = { icon = "/usr/share/pixmaps/p2p.png", icon_only = true, },
-    [":gimp"] = { spawn = "gimp", layout = "max", icon_only = true, mwfact = 0.18, sweep_delay = 2, exclusive = true, icon="/usr/share/pixmaps/gimp.png", screen = 1,  },
+    [":gimp"] = { spawn = "gimp", layout = "fullscreen", sweep_delay = 2, screen = 1,  },
+    [":gimp-tool"] = { layout = "tile", sweep_delay = 2, screen = 2,  },
       [":fs"] = { rel_index = 1, exclusive = false                                           },
       [":Wine"] = { rel_index = 1, layout = "float", screen = 1, nopopup = true, },
       [":video"] = { layout = "float", screen = 1, },
@@ -109,24 +113,22 @@ shifty.config.tags = {
 }
 
 shifty.config.apps = {
-        { match = { "::irssi.*",        }, tag = "1:irc",        screen = 2,     },
+        { match = { "::irssi.*",                    }, tag = "1:irc",        screen = 2,     },
         { match = {"Shiretoko.*", "Vimperator.*", "Uzbl.*"       }, tag = "2:www", nopopup = true,       },
         { match = {"urxvt"                          }, tag = "3:term",      },
-        { match = {"term:.*"                          }, tag = "3:term",     },
-        { match = {".* - VIM"                          }, tag = "6:code",      },
-        { match = {"::ncmpcpp.*",             }, tag = "5:ncmpcpp",                       },
-        { match = {"MPlayer.*",                        }, tag = ":video", },
+        { match = {"term:.*"                        }, tag = "3:term",     },
+        { match = {".* - VIM"                       }, tag = "6:code",      },
+        { match = {"::ncmpcpp.*",                   }, tag = "5:ncmpcpp",                       },
+        { match = {"MPlayer.*",                     }, tag = ":video", },
         { match = {"MilkyTracker.*","Sound.racker.*"}, tag = ":TRACKZ",         nopopup = true, },
-        { match = {".* Wine desktop"}, tag = ":Wine",         nopopup = true, },
+        { match = {".* Wine desktop"                }, tag = ":Wine",         nopopup = true, },
         { match = {"Deluge","rtorrent"              }, tag = ":p2p",                          },
         { match = {"apvlv",                         }, tag = ":PDF"},
-        { match = {"Xpdf.*",                         }, tag = ":PDF"},
-        { match = {"Gimp","Ufraw"                   }, tag = ":gimp",                         },
-        { match = { "gimp.toolbox",                     },  slave = true , struts = { right=200 },
-                                                        geometry = {nil,35,200,733}                   },
-        { match = {"gimp-image-window"              }, master = true,                         },
-
-        { match = {"feh.*"                         }, tag = ":feh",                       },
+        { match = {"Xpdf.*",                        }, tag = ":PDF"},
+        { match = { "gimp.toolbox",                 },  master = true , tag = ":gimp-tool" },
+        { match = { "gimp.dock",                 },  slave = true , tag = ":gimp-tool" },
+        { match = { "gimp-image-window",             }, master = true, tag = ":gimp" },
+        { match = {"feh.*"                          }, tag = ":img",                       },
         { match = { "popterm",                          },  intrusive = true, struts = { bottom = 200 },
                                                         dockable = true, float = true, sticky = true  },
         { match = { "mc -.+"                       }, tag = ":fs:",                           },
@@ -147,6 +149,7 @@ shifty.config.apps = {
 shifty.config.defaults = {
   layout = awful.layout.suit.tile.top,
   ncol = 1,
+  rel_index=-1,
   floatBars = true,
  }
 shifty.config.layouts = layouts
@@ -257,6 +260,7 @@ tbox = widget({ type = "textbox", align = "right" })
     mywibox[s] = wibox({ position = "top", fg = beautiful.fg_normal, bg = beautiful.bg_normal })
     -- Add widgets to the wibox - order matters
     mywibox[s].widgets = {
+         mylayoutbox[s],
 			   mpdbox,
 			   infobox,
 			   batterybox,
@@ -268,12 +272,12 @@ tbox = widget({ type = "textbox", align = "right" })
 		}
     mywibox[s].screen = s
     --the lower wibox
-    bwibox[s] = wibox({ position = "top", fg = beautiful.fg_normal, bg = beautiful.bg_normal })
+--[[    bwibox[s] = wibox({ position = "top", fg = beautiful.fg_normal, bg = beautiful.bg_normal })
     bwibox[s].widgets = {
-        mylayoutbox[s],
         mytasklist[s]
     }
     bwibox[s].screen = s
+    --]]
 end
 --}}}
 
@@ -410,6 +414,16 @@ function uzbl_prompt(prompt, text, socket, command)
         end)
 end
 --}}}
+
+--{{{ Get album cover from Last.fm
+function get_albumart ()
+     local stats = mpc:send("status")
+     local zstats = mpc:send("playlistid " .. stats.songid)
+     local url = "http://last.fm/music/" .. string.gsub(zstats.artist, " ", "+" ) .. "/" .. string.gsub(zstats.album, " ", "+")
+     return url
+end
+--}}}
+
 --}}}
 
 --{{{ Keybindings
@@ -433,9 +447,9 @@ globalkeys = awful.util.table.join(
     awful.key({ modkey            }, "r",           shifty.rename),
     awful.key({ modkey            }, "w",           shifty.delete),
     awful.key({ modkey, "Shift"   }, "o",      function() shifty.set(awful.tag.selected(mouse.screen), { screen = awful.util.cycle(screen.count() , mouse.screen + 1) }) end),
-    awful.key({ modkey,           }, "p",      function() list = naughty.notify({
-                                                          text = get_playlist(),
-                                                          width = 300 }) end),
+    awful.key({ modkey,           }, "y",      function() list = naughty.notify({
+                                                          text = get_albumart(),
+                                                          width = 400 }) end),
     awful.key({ modkey,           }, "j",
         function ()
             awful.client.focus.byidx( 1)
@@ -463,18 +477,27 @@ globalkeys = awful.util.table.join(
 
     -- Standard program
     awful.key({ modkey,           }, "Return", function () awful.util.spawn(terminal) end),
+    awful.key({ modkey, "Shift"   }, "Return", function () awful.util.spawn(editor) end),
     awful.key({ modkey, "Control" }, "r", awesome.restart),
     awful.key({ modkey, "Shift"   }, "q", awesome.quit),
 
     -- MPD Bindings
+    -- display playlist
+    awful.key({ modkey,           }, "p",      function() list = naughty.notify({
+                                                          text = get_playlist(),
+                                                          width = 400 }) end),
+    -- Control MPD
     awful.key({ modkey,           }, "z", function () mpc:previous() ; hook_mpd() end),
     awful.key({ modkey,           }, "x", function () mpc:toggle_play() ; hook_mpd() end),
     awful.key({ modkey,           }, "c", function () mpc:stop() ; hook_mpd() end),
     awful.key({ modkey,           }, "v", function () mpc:next() ; hook_mpd() end),
+
    -- Display the todo list
     awful.key({ modkey,           }, "d", function () show_todo() end),
+    
    -- Open with uzbl
    awful.key({ modkey, "Shift"    }, "u", function () awful.util.spawn(browser .. selection()) end),
+
    -- Paste content of the xbuffer
    awful.key({ modkey, "Shift"    }, "p", function () paste("/home/dunz0r/.pastebin") end),
    awful.key({ modkey, "Control"  }, "p", function ()
