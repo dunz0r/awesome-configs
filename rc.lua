@@ -21,6 +21,13 @@ require("obvious")
 
 -- Wicked
 require("wicked")
+-- Stuff for the wikipedia prompt
+local json = require("json")
+local http = require("socket.http")
+local table = table
+local io = io
+local os = os
+local print = print
 
 -- {{{ Variable definitions
 -- Themes define colours, icons, and wallpapers
@@ -35,7 +42,7 @@ terminal = "urxvtc"
 -- Editor to use
 editor = "urxvtc -name 'VIM' -title ' - VIM' -e vim"
 -- Which browser
-browser = "exec uzbl_tabbed.py"
+browser = "exec uzbl"
 -- where to paste stuff
 pastebin = os.getenv("HOME") .. ".pastebin"
 -- this is the default level when adding a todo note
@@ -103,7 +110,7 @@ shifty.config.defaults = {
 }
 shifty.config.tags = {
    ["1:irc"] = { position = 1, screen = 2, spawn = "urxvtc -name SSH -title '::irssi::' -e ssh -C ninjaloot.se", },
-   ["2:www"] = { exclusive = true, solitary = true, position = 2, layout = "max", nopopup = true, spawn = browser,    },
+   ["2:www"] = { exclusive = true, solitary = true, position = 2, layout = "max", nopopup = true, spawn = "uzbl_tabbed.py",    },
   ["3:term"] = { persist = true, position = 3, layout = "tiletop",        },
   ["5:ncmpcpp"] = { nopopup = true, persist = false, leave_kills = true, position = 5, screen = 2, spawn = "urxvtc -name '::ncmpcpp::' -title '::ncmpcpp::' -e ncmpcpp" },
   ["6:code"] = { spawn = editor, persist = true, nopopup = true, position = 6, layout = "fullscreen",        },
@@ -125,7 +132,7 @@ shifty.config.apps = {
         { match = {"::ncmpcpp.*",                   }, tag = "5:ncmpcpp",                       },
         { match = {"MPlayer.*",                     }, tag = ":video", },
         { match = {"MilkyTracker.*","Sound.racker.*"}, tag = ":TRACKZ",         nopopup = true, },
-        { match = {".* Wine desktop"                }, tag = ":Wine",         nopopup = true, },
+        { match = {"Default - Wine desktop"                }, tag = ":Wine",         nopopup = true, },
         { match = {"Deluge","rtorrent"              }, tag = ":p2p",                          },
         { match = {"apvlv",                         }, tag = ":PDF"},
         { match = {"Xpdf.*",                        }, tag = ":PDF"},
@@ -433,6 +440,62 @@ function get_albumart ()
 end
 --}}}
 
+--{{{ Wikipedia prompt
+function wikipedia(command, cur_pos, ncomp)
+   local wstart = 1
+   local wend = 1
+   local words = {}
+   local cword_index = 0
+   local cword_start = 0
+   local cword_end = 0
+   local i = 1
+
+   if cur_pos ~= #command + 1 and command:sub(cur_pos, cur_pos) ~= " " then
+     return command, cur_pos
+   elseif #command == 0 then
+     return command, cur_pos
+   end
+
+   while wend <= #command do
+     wend = command:find(" ", wstart)
+     if not wend then wend = #command + 1 end
+     table.insert(words, command:sub(wstart, wend - 1))
+     if cur_pos >= wstart and cur_pos <= wend + 1 then
+        cword_start = wstart
+        cword_end = wend
+        cword_index = i
+     end
+     wstart = wend + 1
+     i = i + 1
+   end
+   local c, err, h = http.request("http://en.wikipedia.org/w/api.php?action=opensearch&search="..words[cword_index].."&format=json")
+   local output = {}
+   i = 0
+   if c then
+     c = json.decode(c)
+     for i=2, table.getn(c[2]) do
+       local entry = c[2][i]
+       if not entry then break end
+       table.insert(output, entry)
+     end
+   else
+     print(err)
+   end
+
+   if #output == 0 then
+     return command, cur_pos
+   end
+   while ncomp > #output do
+     ncomp = ncomp - #output
+   end
+
+   local str = command:sub(1, cword_start - 1) .. output[ncomp] .. command:sub(cword_end)
+   cur_pos = cword_end + #output[ncomp] + 1
+
+   return str, cur_pos
+ end
+--}}}
+
 --}}}
 
 --{{{ Keybindings
@@ -503,7 +566,7 @@ globalkeys = awful.util.table.join(
 
    -- Display the todo list
     awful.key({ modkey,           }, "d", function () show_todo() end),
-    
+
    -- Open with uzbl
    awful.key({ modkey, "Shift"    }, "u", function () awful.util.spawn(browser .. selection()) end),
 
@@ -548,7 +611,16 @@ globalkeys = awful.util.table.join(
                   awful.util.spawn, awful.completion.shell,
                   awful.util.getdir("cache") .. "/history")
               end),
-
+-- Open a wikipedia article
+awful.key({ modkey }, "F3", 
+            function ()
+              awful.prompt.run({ prompt = "Search: " },
+              mypromptbox[mouse.screen],
+               function(h)
+                 awful.util.spawn("firefox 'http://en.wikipedia.org/w/index.php?title=Special:Search&search=" .. h .. "'")
+               end, wikipedia,
+               awful.util.getdir("cache") .. "/history")
+             end),
     awful.key({ modkey }, "F4",
               function ()
                   awful.prompt.run({ prompt = "Run Lua code: " },
