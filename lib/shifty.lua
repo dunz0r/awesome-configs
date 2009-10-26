@@ -4,7 +4,7 @@
 --
 -- http://awesome.naquadah.org/wiki/index.php?title=Shifty
 
--- package env
+-- {{{ environment
 local type = type
 local tag = tag
 local ipairs = ipairs
@@ -23,8 +23,12 @@ local tonumber = tonumber
 local wibox = wibox
 local root = root
 local dbg= dbg
-module("shifty")
+local timer = timer
 
+module("shifty")
+-- }}}
+
+-- {{{ variables
 config = {}
 config.tags = {}
 config.apps = {}
@@ -42,6 +46,7 @@ config.prompt_matchers = { "^", ":", "" }
 local matchp = ""
 local index_cache = {}
 for i = 1, screen.count() do index_cache[i] = {} end
+-- }}}
 
 --{{{ name2tags: matches string 'name' to tag objects
 -- @param name : tag name to find
@@ -112,7 +117,8 @@ function rename(tag, prefix, no_selectall)
         awful.tag.setproperty(t, "initial", true)
         set(t)
       end
-      awful.hooks.user.call("tags", scr)
+      tagkeys(screen[scr])
+      screen[scr]:emit_signal("tag::detach")
     end
     )
 end
@@ -125,17 +131,15 @@ function send(idx)
   local scr = client.focus.screen or mouse.screen
   local sel = awful.tag.selected(scr)
   local sel_idx = tag2index(scr,sel)
-  local target = awful.util.cycle(#screen[scr]:tags(), sel_idx + idx)
-  awful.tag.viewonly(screen[scr]:tags()[target])
-  awful.client.movetotag(screen[scr]:tags()[target], client.focus)
+  local tags = screen[scr]:tags()
+  local target = awful.util.cycle(#tags, sel_idx + idx)
+  awful.client.movetotag(tags[target], client.focus)
+  awful.tag.viewonly(tags[target])
 end
 
 function send_next() send(1) end
 function send_prev() send(-1) end
 --}}}
-
-function shift_next() set(awful.tag.selected(), { rel_index = 1 }) end
-function shift_prev() set(awful.tag.selected(), { rel_index = -1 }) end
 
 --{{{ pos2idx: translate shifty position to tag index
 --@param pos: position (an integer)
@@ -286,8 +290,8 @@ function set(t, args)
   end
 
   -- set tag properties and push the new tag table
-  for prop, val in pairs(props) do awful.tag.setproperty(t, prop, val) end
   screen[scr]:tags(tags)
+  for prop, val in pairs(props) do awful.tag.setproperty(t, prop, val) end
 
   -- execute run/spawn
   if awful.tag.getproperty(t, "initial") then
@@ -300,6 +304,9 @@ function set(t, args)
 
   return t
 end
+
+function shift_next() set(awful.tag.selected(), { rel_index = 1 }) end
+function shift_prev() set(awful.tag.selected(), { rel_index = -1 }) end
 --}}}
 
 --{{{ add : adds a tag
@@ -310,7 +317,7 @@ function add(args)
   local name = args.name or " "
 
   -- initialize a new tag object and its data structure
-  local t = tag( name )
+  local t = tag{ name = name }
 
   -- tell set() that this is the first time
   awful.tag.setproperty(t, "initial", true)
@@ -328,12 +335,15 @@ function add(args)
     -- FIXME: hack to delay rename for un-named tags for tackling taglist refresh
     --        which disabled prompt from being rendered until input
     awful.tag.setproperty(t, "initial", true)
+    local f
     if args.position then
-      f = function() rename(t, args.rename, true); awful.hooks.timer.unregister(f) end
+      f = function() rename(t, args.rename, true); tmr:stop() end
     else
-      f = function() rename(t); awful.hooks.timer.unregister(f) end
+      f = function() rename(t); tmr:stop() end
     end
-    awful.hooks.timer.register(0.01, f)
+    tmr = timer({ timeout = 0.01 })
+    tmr:add_signal("timeout", f)
+    tmr:start()
   end
 
   return t
@@ -365,7 +375,7 @@ function del(tag)
 
   -- if the current tag is being deleted, restore from history
   if t == sel and #tags > 1 then
-    awful.tag.history.restore(scr)
+    awful.tag.history.restore(scr,1)
     -- this is supposed to cycle if history is invalid?
     -- e.g. if many tags are deleted in a row
     if not awful.tag.selected(scr) then
@@ -382,7 +392,7 @@ end
 --            rc.lua
 --@param c : client to be matched
 function match(c, startup)
-  local nopopup, intrusive, nofocus, run, slave, wfact, struts, geom
+  local nopopup, intrusive, nofocus, run, slave, wfact, struts, geom, float
   local target_tag_names, target_tags = {}, {}
   local typ = c.type
   local cls = c.class
@@ -414,9 +424,11 @@ function match(c, startup)
               target_tag_names = a.tag
             end
           end
-          if a.float ~= nil then awful.client.floating.set(c, a.float) end
+          if a.startup and startup then a = awful.util.table.join(a, a.startup) end
           if a.geometry ~=nil then geom = { x = a.geometry[1], y = a.geometry[2], width = a.geometry[3], height = a.geometry[4] } end
+          if a.float ~= nil then float = a.float end
           if a.slave ~=nil then slave = a.slave end
+          if a.border_width ~= nil then c.border_width = a.border_width end
           if a.nopopup ~=nil then nopopup = a.nopopup end
           if a.intrusive ~=nil then intrusive = a.intrusive end
           if a.fullscreen ~=nil then c.fullscreen = a.fullscreen end
@@ -428,7 +440,7 @@ function match(c, startup)
           if a.buttons ~= nil then c:buttons(a.buttons) end
           if a.nofocus ~= nil then nofocus = a.nofocus end
           if a.keys ~= nil then keys = awful.util.table.join(keys, a.keys) end
-          if a.hide ~= nil then c.hide = a.hide end
+          if a.hidden ~= nil then c.hidden = a.hidden end
           if a.minimized ~= nil then c.minimized = a.minimized end
           if a.dockable ~= nil then awful.client.dockable.set(c, a.dockable) end
           if a.urgent ~= nil then c.urgent = a.urgent end
@@ -438,6 +450,10 @@ function match(c, startup)
           if a.sticky ~= nil then c.sticky = a.sticky end
           if a.wfact ~= nil then wfact = a.wfact end
           if a.struts then struts = a.struts end
+          if a.skip_taskbar ~= nil then c.skip_taskbar = a.skip_taskbar end
+          if a.props then
+            for kk, vv in pairs(a.props) do awful.client.property.set(c, kk, vv) end
+          end
         end
       end
     end
@@ -500,16 +516,17 @@ function match(c, startup)
   -- set client's screen/tag if needed
   target_screen = target_tags[1].screen or target_screen
   if c.screen ~= target_screen then c.screen = target_screen end
-  c:tags( target_tags )
   if slave then awful.client.setslave(c) end
+  c:tags( target_tags )
   if wfact then awful.client.setwfact(wfact, c) end
+  if float ~= nil then awful.client.floating.set(c, float) end
   if geom then c:geometry(geom) end
   if struts then c:struts(struts) end
 
   -- switch or highlight
   local showtags = {}
   local u = nil
-  if #target_tags > 0 then
+  if #target_tags > 0 and not startup then
     for i,t in ipairs(target_tags) do
       if not(awful.tag.getproperty(t,"nopopup") or nopopup) then
         table.insert(showtags, t)
@@ -518,12 +535,18 @@ function match(c, startup)
       end
     end
     if #showtags > 0 then
-      awful.tag.viewmore(showtags, c.screen)
+      local ident = true
+      for kk,vv in pairs(showtags) do
+        if sel[kk] ~= vv then ident = false; break end
+      end
+      if not ident then
+        awful.tag.viewmore(showtags, c.screen)
+      end
     end
   end
 
   -- focus and raise accordingly or lower if supressed
-  if not (nofocus or c.hide or c.minimized) then
+  if not (nofocus or c.hidden or c.minimized) then
     if (awful.tag.getproperty(target,"nopopup") or nopopup) and (target and target ~= sel) then
       awful.client.focus.history.add(c)
     else
@@ -554,9 +577,10 @@ function sweep()
           if awful.tag.getproperty(t,"deserted") or not awful.tag.getproperty(t,"leave_kills") then
             local delay = awful.tag.getproperty(t,"sweep_delay")
             if delay then
-              --FIXME: global f, what if more than one at a time is being swept
-              f = function() del(t); awful.hooks.timer.unregister(f) end
-              awful.hooks.timer.register(delay, f)
+              local f = function() del(t); tmr:stop() end
+              tmr = timer({ timeout = delay })
+              tmr:add_signal("timeout", f)
+              tmr:start()
             else
               del(t)
             end
@@ -740,9 +764,9 @@ end
 
 -- {{{ tagkeys : hook function that sets keybindings per tag
 function tagkeys(s)
-  local sel = awful.tag.selected(s)
+  local sel = awful.tag.selected(s.index)
   local keys = awful.tag.getproperty(sel, "keys") or config.globalkeys
-  if keys then root.keys(keys) end
+  if keys and sel.selected then root.keys(keys) end
 end
 -- }}}
 
@@ -752,7 +776,7 @@ function squash_keys(keys)
   local squashed = {}
   local ret = {}
   for i, k in ipairs(keys) do
-    squashed[table.concat(k.modifiers) .. k.keysym] = k
+    squashed[table.concat(k.modifiers) .. k.key] = k
   end
   for i, k in pairs(squashed) do
     table.insert(ret, k)
@@ -769,11 +793,16 @@ function getlayout(name)
 end
 -- }}}
 
-awful.hooks.manage.unregister(awful.tag.withcurrent)
-awful.hooks.tags.register(sweep)
-awful.hooks.arrange.register(sweep)
-awful.hooks.arrange.register(tagkeys)
-awful.hooks.clients.register(sweep)
-awful.hooks.manage.register(match)
+-- {{{ signals
+client.add_signal("manage", match)
+client.add_signal("unmanage", sweep)
+client.remove_signal("manage", awful.tag.withcurrent)
+
+for s = 1, screen.count() do
+  awful.tag.attached_add_signal(s, "property::selected", sweep)
+  awful.tag.attached_add_signal(s, "tagged", sweep)
+  screen[s]:add_signal("tag::history::update", tagkeys)
+end
+-- }}}
 
 -- vim: foldmethod=marker:filetype=lua:expandtab:shiftwidth=2:tabstop=2:softtabstop=2:encoding=utf-8:textwidth=80
