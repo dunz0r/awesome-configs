@@ -127,6 +127,7 @@ mybwibox = {}
 mypromptbox = {}
 mylayoutbox = {}
 mpdbox = {}
+infobox = {}
 mytaglist = {}
 mytaglist.buttons = awful.util.table.join(
                     awful.button({ }, 1, awful.tag.viewonly),
@@ -167,6 +168,8 @@ for s = 1, screen.count() do
     mypromptbox[s] = awful.widget.prompt({ layout = awful.widget.layout.horizontal.leftright })
     -- Create an mpd box for each screen
     mpdbox = widget({ screen = 1, type = "textbox", layout = awful.widget.layout.horizontal.leftright })
+    -- The infobox
+    infobox = widget({ screen = 1, type = "textbox", layout = awful.widget.layout.horizontal.rightleft })
     -- Create an imagebox widget which will contains an icon indicating which layout we're using.
     -- We need one layoutbox per screen.
     mylayoutbox[s] = awful.widget.layoutbox(s)
@@ -187,6 +190,7 @@ for s = 1, screen.count() do
     -- Add widgets to the wibox - order matters
     mywibox[s].widgets = {
         {
+	    infobox,
             mytextclock,
             mytaglist[s],
             mypromptbox[s],
@@ -532,9 +536,12 @@ client.add_signal("manage", function (c, startup)
     end
 end)
 
-mpdtimer = timer { timeout = 5 }
-mpdtimer:add_signal("timeout", function() mpdbox.text = get_mpd() end)
-mpdtimer:start()
+boxtimer = timer { timeout = 5 }
+boxtimer:add_signal("timeout", function() 
+	infobox.text = get_load_temp("THRM")
+	mpdbox.text = get_mpd() 
+	end)
+boxtimer:start()
 mpdbox.text = get_mpd()
 
 client.add_signal("focus", function(c) c.border_color = beautiful.border_focus end)
