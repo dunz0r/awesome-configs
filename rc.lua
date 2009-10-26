@@ -20,7 +20,7 @@ beautiful.init(theme_path)
 
 -- This is used later as the default terminal and editor to run.
 terminal = "urxvtc"
-editor = os.getenv("EDITOR") or "nano"
+editor = os.getenv("EDITOR") or "vim"
 editor_cmd = terminal .. " -e " .. editor
 
 -- Default modkey.
@@ -347,15 +347,6 @@ function uzbl_prompt(prompt, text, socket, command)
         assert(c:send("uri google.com\n"))
     -- end
    --end)
-end
---}}}
-
---{{{ Get album cover from Last.fm
-function get_albumart ()
-     local stats = mpc:send("status")
-     local zstats = mpc:send("playlistid " .. stats.songid)
-     local url = "http://last.fm/music/" .. string.gsub(zstats.artist, " ", "+" ) .. "/" .. string.gsub(zstats.album, " ", "+")
-     return url
 end
 --}}}
 
