@@ -64,37 +64,41 @@ shifty.config.defaults = {
   guess_position = true,
   remember_index = true,
   ncol = 1,
+  mwfact = 0.5,
   nopopup = true
 }
 shifty.config.tags = {
-   ["1:irc"] = { position = 1, screen = 2, spawn = "urxvtc -name SSH -title '::irssi::' -e ssh -C ninjaloot.se", },
-   ["2:www"] = { solitary = true, position = 2, max_clients = 4, layout = awful.layout.suit.max, nopopup = true, spawn = "uzbl",    },
+   ["1:irc"] = { position = 1, screen = 2, spawn = "urxvtc -tn linux -name SSH -title '::irssi::' -e ssh -C ninjaloot.se -t screen -D -RR", },
+   ["2:www"] = { solitary = true, position = 2, max_clients = 4, layout = awful.layout.suit.max, nopopup = true, spawn = "uzbl-browser",    },
   ["3:term"] = { persist = true, position = 3, },
   ["5:ncmpcpp"] = { nopopup = true, persist = false, position = 5, screen = 2, spawn = "urxvtc -name '::ncmpcpp::' -title '::ncmpcpp::' -e ncmpcpp" },
   ["6:code"] = { spawn = terminal .. " -title '- VIM' -e " .. editor, nopopup = false, position = 6, layout = awful.layout.suit.max.fullscreen,        },
+  ["7:newsbeuter"] = { spawn = terminal .. " -title 'newsbeuter:' -e newsbeuter", nopopup = false, position = 7, layout = awful.layout.suit.max.fullscreen,        },
      [":p2p"] = { icon = "/usr/share/pixmaps/p2p.png", icon_only = true, },
     [":gimp"] = { spawn = "gimp", layout = awful.layout.suit.max.fullscreen, sweep_delay = 2, screen = 1,  },
     [":gimp-tool"] = { layout = "tile", sweep_delay = 2, screen = 2,  },
       [":fs"] = { rel_index = 1, exclusive = false                                           },
       [":Wine"] = { rel_index = 1, layout = awful.layout.suit.float, screen = 1, nopopup = true, },
-      [":video"] = { nopopup = false, layout = awful.layout.suit.float, screen = 1, },
+      [":video"] = { nopopup = false, rel_index= 1, layout = awful.layout.suit.float, screen = 1, },
       ["9:skype"] = { layout = awful.layout.suit.tile, screen = 2, mwfact = 0.6, position = 9, spawn = "skype-pulse", },
+      ["8:PDF"] = { layout = awful.layout.suit.fair, position = 8, nopopup = false },
       [":img"] = { layout = awful.layout.suit.max.fullscreen, screen = 1, nopopup = false, spawn = "feh -F /home/dunz0r/gfx/*", }
 }
 
 shifty.config.apps = {
         { match = { "::irssi.*",                    }, tag = "1:irc", },
-        { match = {"Shiretoko.*", "Vimperator.*", "Uzbl.*"       }, tag = "2:www", },
-        { match = {"urxvt"                          }, tag = "3:term",      },
+        { match = {"Shiretoko.*", "Vimperator.*", "uzbl"       }, tag = "2:www", },
+        { match = {"urxvt"                          }, tag = "3:term",     },
         { match = {"term:.*"                        }, tag = "3:term",     },
-        { match = {".* - VIM"                       }, tag = "6:code",      },
-        { match = {"::ncmpcpp.*",                   }, tag = "5:ncmpcpp",                       },
+        { match = {".* - VIM"                       }, tag = "6:code",     },
+        { match = {"newsbeuter:.*"                  }, tag = "7:newsbeuter",},
+        { match = {"::ncmpcpp.*",                   }, tag = "5:ncmpcpp",  },
         { match = {"MPlayer.*",                     }, tag = ":video", },
         { match = {"MilkyTracker.*","Sound.racker.*"}, tag = ":TRACKZ", },
         { match = {"Default - Wine desktop"         }, tag = ":Wine",         nopopup = true, },
         { match = {"Deluge","rtorrent"              }, tag = ":p2p",                          },
-        { match = {"apvlv",                         }, tag = ":PDF"},
-        { match = {"Xpdf.*",                        }, tag = ":PDF"},
+        { match = {"apvlv",                         }, tag = "8:PDF"},
+        { match = {"Xpdf.*",                        }, tag = "8:PDF"},
         { match = {"gimp.toolbox",                 },  master = true , tag = ":gimp-tool" },
         { match = {"gimp.dock",                 },  slave = true , tag = ":gimp-tool" },
         { match = {"gimp-image-window",             }, master = true, tag = ":gimp" },
@@ -169,10 +173,11 @@ for s = 1, screen.count() do
     -- Create an mpd box for each screen
     mpdbox = widget({ screen = 1, type = "textbox", layout = awful.widget.layout.horizontal.leftright })
     -- The infobox
-    infobox = widget({ screen = 1, type = "textbox", layout = awful.widget.layout.horizontal.rightleft })
+    infobox = widget({ screen = 1, type = "textbox", layout = awful.widget.layout.horizontal.leftright })
     -- Create an imagebox widget which will contains an icon indicating which layout we're using.
     -- We need one layoutbox per screen.
     mylayoutbox[s] = awful.widget.layoutbox(s)
+    --mylayoutbox[s] = widget({ layout = awful.widget.layout.horizontal.rightleft })
     mylayoutbox[s]:buttons(awful.util.table.join(
                            awful.button({ }, 1, function () awful.layout.inc(layouts, 1) end),
                            awful.button({ }, 3, function () awful.layout.inc(layouts, -1) end),
@@ -193,13 +198,13 @@ for s = 1, screen.count() do
 	    infobox,
             mytextclock,
             mytaglist[s],
+            mylayoutbox[s],
             mypromptbox[s],
 	    mpdbox,
             s == 1 and mysystray or nil,
     	    layout = awful.widget.layout.horizontal.rightleft
 	},
     {
-        mylayoutbox[s],
         mytasklist[s],
 	layout = awful.widget.layout.horizontal.leftright
     },
@@ -214,11 +219,13 @@ end
 --{{{ Get mpd info
 function get_mpd()
   local stats = mpc:send("status")
-   if stats then
-   if stats.state == "stop" then
-  	 now_playing = " stopped"
+   if stats.errormsg then
+    mpd_text = "MPD not running? | "
    else
-     local zstats = mpc:send("playlistid " .. stats.songid)
+    if stats.state == "stop" then
+  	 now_playing = " stopped"
+    else
+      local zstats = mpc:send("playlistid " .. stats.songid)
   	  now_playing = ( zstats.album  or "NA" ) .. "; " .. ( zstats.artist or "NA" ) .. " - " .. (zstats.title or string.gsub(zstats.file, ".*/", "" ) )
   	end
    if stats.state == "pause" then
@@ -227,8 +234,6 @@ function get_mpd()
      now_playing = awful.util.escape(now_playing)
    end
    mpd_text = now_playing .. " | "
-  else 
-   mpd_text = "MPD not running? | "
  end
 return mpd_text
 end
@@ -366,8 +371,8 @@ root.buttons(awful.util.table.join(
 
 -- {{{ Key binding
 globalkeys = awful.util.table.join(
-    awful.key({ modkey, "Control" }, "i",   awful.tag.viewprev       ),
-    awful.key({ modkey, "Control" }, "u",  awful.tag.viewnext       ),
+    awful.key({ modkey,           }, "Tab",   awful.tag.viewprev       ),
+    awful.key({ modkey, "Shift"   }, "Tab",  awful.tag.viewnext       ),
     awful.key({ modkey,           }, "Escape", awful.tag.history.restore),
     awful.key({ modkey            }, "t",           function() shifty.add({ rel_index = 1 }) end),
     awful.key({ modkey, "Control" }, "t",           function() shifty.add({ rel_index = 1, nopopup = true }) end),
@@ -393,20 +398,20 @@ globalkeys = awful.util.table.join(
     awful.key({ modkey, "Control" }, "j", function () awful.screen.focus_relative( 1) end),
     awful.key({ modkey, "Control" }, "k", function () awful.screen.focus_relative(-1) end),
     awful.key({ modkey,           }, "u", awful.client.urgent.jumpto),
-    awful.key({ modkey,           }, "Tab",
-        function ()
-            awful.client.focus.history.previous()
-            if client.focus then
-                client.focus:raise()
-            end
-        end),
-
+    
     -- Standard program
     awful.key({ modkey,           }, "Return", function () awful.util.spawn(terminal) end),
-    awful.key({ modkey,           }, "5", awesome.restart),
-    awful.key({ modkey,           }, "6", awesome.quit),
+    awful.key({ modkey,           }, "F12", awesome.restart),
+    awful.key({ modkey,           }, "F11", awesome.quit),
 
     awful.key({ modkey,           }, "p",     function () naughty.notify{ text = get_playlist() } end),
+
+    awful.key({ modkey, "Control" }, "p", function ()
+      awful.prompt.run({ prompt = "Paste to: "},
+      mypromptbox[mouse.screen].widget,
+      function (s) paste(s) end,
+	      awful.completion.shell) 
+	end),
     awful.key({ modkey,           }, "l",     function () awful.tag.incmwfact( 0.05)    end),
     awful.key({ modkey,           }, "h",     function () awful.tag.incmwfact(-0.05)    end),
     awful.key({ modkey, "Shift"   }, "h",     function () awful.tag.incnmaster( 1)      end),
@@ -430,7 +435,7 @@ globalkeys = awful.util.table.join(
 
 clientkeys = awful.util.table.join(
     awful.key({ modkey,           }, "f",      function (c) c.fullscreen = not c.fullscreen  end),
-    awful.key({ modkey, "Shift"   }, "c",      function (c) c:kill()                         end),
+    awful.key({ modkey,           }, "g",      function (c) c:kill()                         end),
     awful.key({ modkey, "Control" }, "space",  awful.client.floating.toggle                     ),
     awful.key({ modkey, "Control" }, "Return", function (c) c:swap(awful.client.getmaster()) end),
     awful.key({ modkey,           }, "o",      awful.client.movetoscreen                        ),
@@ -443,7 +448,7 @@ clientkeys = awful.util.table.join(
         end)
 )
 
--- Bind keys 1234,qwer,asdf to tags 1 to 12
+-- Bind keys 1234,qwe,asd to tags 1 to 9
 keys = {}
 keys[1] = "1"
 keys[2] = "2"
@@ -484,6 +489,8 @@ clientbuttons = awful.util.table.join(
 
 -- Set keys
 root.keys(globalkeys)
+shifty.config.globalkeys = globalkeys
+shifty.config.clientkeys = clientkeys
 -- }}}
 
 shifty.taglist = mytaglist
@@ -497,8 +504,6 @@ awful.rules.rules = {
                      focus = true,
                      keys = clientkeys,
                      buttons = clientbuttons } },
-    { rule = { class = "MPlayer" },
-      properties = { floating = true } },
     { rule = { class = "pinentry" },
       properties = { floating = true } },
     { rule = { class = "gimp" },
