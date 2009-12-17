@@ -1,218 +1,219 @@
--- Standard awesome library
-require("awful")
-require("awful.autofocus")
-require("awful.rules")
--- Theme handling library
-require("beautiful")
--- Notification library
-require("naughty")
--- Dynamic Tagging
-require("lib/shifty")
--- MPD library
-require("lib/mpd") ; mpc = mpd.new()
--- For sending to sockets
-socket = require"socket"
-socket.unix = require"socket.unix"
--- {{{ Variable definitions
--- Themes define colours, icons, and wallpapers
-theme_path = os.getenv("HOME") .. "/.config/awesome/theme.lua"
-beautiful.init(theme_path)
+	-- Standard awesome library
+	require("awful")
+	require("awful.autofocus")
+	require("awful.rules")
+	-- Theme handling library
+	require("beautiful")
+	-- Notification library
+	require("naughty")
+	-- Dynamic Tagging
+	require("lib/shifty")
+	-- MPD library
+	require("lib/mpd") ; mpc = mpd.new()
+	-- For sending to sockets
+	socket = require"socket"
+	socket.unix = require"socket.unix"
+	-- {{{ Variable definitions
+	-- Themes define colours, icons, and wallpapers
+	theme_path = os.getenv("HOME") .. "/.config/awesome/theme.lua"
+	beautiful.init(theme_path)
 
--- This is used later as the default terminal and editor to run.
-terminal = "urxvtc"
-editor = os.getenv("EDITOR") or "vim"
-editor_cmd = terminal .. " -e " .. editor
+	-- This is used later as the default terminal and editor to run.
+	terminal = "urxvtc"
+	editor = os.getenv("EDITOR") or "vim"
+	editor_cmd = terminal .. " -e " .. editor
+	locker = "xlock"
 
--- Default modkey.
--- Usually, Mod4 is the key with a logo between Control and Alt.
--- If you do not like this or do not have such a key,
--- I suggest you to remap Mod4 to another key using xmodmap or other tools.
--- However, you can use another modifier like Mod1, but it may interact with others.
-modkey = "Mod4"
+	-- Default modkey.
+	-- Usually, Mod4 is the key with a logo between Control and Alt.
+	-- If you do not like this or do not have such a key,
+	-- I suggest you to remap Mod4 to another key using xmodmap or other tools.
+	-- However, you can use another modifier like Mod1, but it may interact with others.
+	modkey = "Mod4"
 
--- Table of layouts to cover with awful.layout.inc, order matters.
-layouts =
-{
-    awful.layout.suit.tile,
-    awful.layout.suit.tile.left,
-    awful.layout.suit.tile.bottom,
-    awful.layout.suit.tile.top,
-    awful.layout.suit.fair,
-    awful.layout.suit.fair.horizontal,
-    awful.layout.suit.spiral,
-    awful.layout.suit.spiral.dwindle,
-    awful.layout.suit.max,
-    awful.layout.suit.max.fullscreen,
-    awful.layout.suit.magnifier,
-    awful.layout.suit.floating
-}
--- }}}
+	-- Table of layouts to cover with awful.layout.inc, order matters.
+	layouts =
+	{
+	    awful.layout.suit.tile,
+	    awful.layout.suit.tile.left,
+	    awful.layout.suit.tile.bottom,
+	    awful.layout.suit.tile.top,
+	    awful.layout.suit.fair,
+	    awful.layout.suit.fair.horizontal,
+	    awful.layout.suit.spiral,
+	    awful.layout.suit.spiral.dwindle,
+	    awful.layout.suit.max,
+	    awful.layout.suit.max.fullscreen,
+	    awful.layout.suit.magnifier,
+	    awful.layout.suit.floating
+	}
+	-- }}}
 
--- {{{ Shifty
-shifty.config.defaults = {
-  layout = awful.layout.suit.tile.top, 
-  floatBars = true,
- run = function(tag)
-         naughty.notify({ text = "Shifty Created "..
-                 (awful.tag.getproperty(tag,"position") or shifty.tag2index(mouse.screen,tag)).." : "..
-                 (tag.name or "foo")
-		})
-	end,
-  guess_name = true,
-  persist = false,
-  exclusive = true,
-  guess_position = true,
-  remember_index = true,
-  ncol = 1,
-  mwfact = 0.5,
-  nopopup = true
-}
-shifty.config.tags = {
-   ["1:irc"] = { position = 1, screen = 2, spawn = "urxvtc -tn linux -name SSH -title '::irssi::' -e ssh -C ninjaloot.se -t screen -D -RR", },
-   ["2:www"] = { solitary = true, position = 2, max_clients = 4, layout = awful.layout.suit.max, nopopup = true, spawn = "uzbl-browser",    },
-  ["3:term"] = { persist = true, position = 3, },
-  ["5:ncmpcpp"] = { nopopup = true, persist = false, position = 5, screen = 2, spawn = "urxvtc -name '::ncmpcpp::' -title '::ncmpcpp::' -e ncmpcpp" },
-  ["6:code"] = { spawn = terminal .. " -title '- VIM' -e " .. editor, nopopup = false, position = 6, layout = awful.layout.suit.max.fullscreen,        },
-  ["7:newsbeuter"] = { spawn = terminal .. " -title 'newsbeuter:' -e newsbeuter", nopopup = false, position = 7, layout = awful.layout.suit.max.fullscreen,        },
-     [":p2p"] = { icon = "/usr/share/pixmaps/p2p.png", icon_only = true, },
-    [":gimp"] = { spawn = "gimp", layout = awful.layout.suit.max.fullscreen, sweep_delay = 2, screen = 1,  },
-    [":gimp-tool"] = { layout = "tile", sweep_delay = 2, screen = 2,  },
-      [":fs"] = { rel_index = 1, exclusive = false                                           },
-      [":Wine"] = { rel_index = 1, layout = awful.layout.suit.float, screen = 1, nopopup = true, },
-      [":video"] = { nopopup = false, rel_index= 1, layout = awful.layout.suit.float, screen = 1, },
-      ["9:skype"] = { layout = awful.layout.suit.tile, screen = 2, mwfact = 0.6, position = 9, spawn = "skype-pulse", },
-      ["8:PDF"] = { layout = awful.layout.suit.fair, position = 8, nopopup = false },
-      [":img"] = { layout = awful.layout.suit.max.fullscreen, screen = 1, nopopup = false, spawn = "feh -F /home/dunz0r/gfx/*", }
-}
+	-- {{{ Shifty
+	shifty.config.defaults = {
+	  layout = awful.layout.suit.tile.top, 
+	  floatBars = true,
+	 run = function(tag)
+		 naughty.notify({ text = "Shifty Created "..
+			 (awful.tag.getproperty(tag,"position") or shifty.tag2index(mouse.screen,tag)).." : "..
+			 (tag.name or "foo")
+			})
+		end,
+	  guess_name = true,
+	  persist = false,
+	  exclusive = true,
+	  guess_position = true,
+	  remember_index = true,
+	  ncol = 1,
+	  mwfact = 0.5,
+	  nopopup = true
+	}
+	shifty.config.tags = {
+	   ["1:irc"] = { position = 1, screen = 2, spawn = "urxvtc -tn screen.linux -name SSH -title '::irssi::' -e ssh -C dunz0r@10.0.0.1 -t screen -D -RR", },
+	   ["2:www"] = { solitary = true, position = 2, max_clients = 4, exclusive = false, layout = awful.layout.suit.max, nopopup = true, spawn = "uzbl-browser",    },
+	  ["3:term"] = { persist = true, position = 3, },
+	  ["5:ncmpcpp"] = { nopopup = true, persist = false, position = 5, screen = 2, spawn = "urxvtc -name '::ncmpcpp::' -title '::ncmpcpp::' -e ncmpcpp" },
+	  ["6:code"] = { spawn = terminal .. " -title '- VIM' -e " .. editor, nopopup = false, position = 6, layout = awful.layout.suit.max.fullscreen,        },
+	  ["7:newsbeuter"] = { spawn = terminal .. " -title 'newsbeuter:' -e newsbeuter", nopopup = false, position = 7, layout = awful.layout.suit.max.fullscreen,        },
+	     [":p2p"] = { icon = "/usr/share/pixmaps/p2p.png", icon_only = true, },
+	    [":gimp"] = { spawn = "gimp", layout = awful.layout.suit.max.fullscreen, sweep_delay = 2, screen = 1,  },
+	    [":gimp-tool"] = { layout = "tile", sweep_delay = 2, screen = 2,  },
+	      [":fs"] = { rel_index = 1, exclusive = false                                           },
+	      [":Wine"] = { rel_index = 1, layout = awful.layout.suit.float, screen = 1, nopopup = true, },
+	      [":video"] = { nopopup = false, rel_index= 1, layout = awful.layout.suit.float, screen = 1, },
+	      ["9:skype"] = { layout = awful.layout.suit.tile, screen = 2, mwfact = 0.6, position = 9, spawn = "skype-pulse", },
+	      ["8:PDF"] = { layout = awful.layout.suit.fair, position = 8, nopopup = false },
+	      [":img"] = { layout = awful.layout.suit.max.fullscreen, screen = 1, nopopup = false, spawn = "feh -F /home/dunz0r/gfx/*", }
+	}
 
-shifty.config.apps = {
-        { match = { "::irssi.*",                    }, tag = "1:irc", },
-        { match = {"Shiretoko.*", "Vimperator.*", "uzbl"       }, tag = "2:www", },
-        { match = {"urxvt"                          }, tag = "3:term",     },
-        { match = {"term:.*"                        }, tag = "3:term",     },
-        { match = {".* - VIM"                       }, tag = "6:code",     },
-        { match = {"newsbeuter:.*"                  }, tag = "7:newsbeuter",},
-        { match = {"::ncmpcpp.*",                   }, tag = "5:ncmpcpp",  },
-        { match = {"MPlayer.*",                     }, tag = ":video", },
-        { match = {"MilkyTracker.*","Sound.racker.*"}, tag = ":TRACKZ", },
-        { match = {"Default - Wine desktop"         }, tag = ":Wine",         nopopup = true, },
-        { match = {"Deluge","rtorrent"              }, tag = ":p2p",                          },
-        { match = {"apvlv",                         }, tag = "8:PDF"},
-        { match = {"Xpdf.*",                        }, tag = "8:PDF"},
-        { match = {"gimp.toolbox",                 },  master = true , tag = ":gimp-tool" },
-        { match = {"gimp.dock",                 },  slave = true , tag = ":gimp-tool" },
-        { match = {"gimp-image-window",             }, master = true, tag = ":gimp" },
-        { match = {"feh.*"                          }, tag = ":img",                       },
-        { match = {"skype.*"                          }, tag = "9:skype",                       },
-        { match = { "popterm",                          },  intrusive = true, struts = { bottom = 200 },
-                                                        dockable = true, float = true, sticky = true  },
-        { match = { "mc -.+"                       }, tag = ":fs:",                           },
-        { match = { "" }, honorsizehints= true,
-                            buttons = {
-                             button({ }, 1, function (c) client.focus = c; c:raise() end),
-                             button({ modkey }, 1, function (c) awful.mouse.client.move() end),
-                             button({ modkey }, 3, awful.mouse.client.resize ), }, },
+	shifty.config.apps = {
+		{ match = { "::irssi.*",                    }, tag = "1:irc", },
+		{ match = {"Shiretoko.*", "Vimperator.*", "uzbl"       }, tag = "2:www", },
+		{ match = {"urxvt"                          }, tag = "3:term",     },
+		{ match = {"term:.*"                        }, tag = "3:term",     },
+		{ match = {".* - VIM"                       }, tag = "6:code",     },
+		{ match = { "zenity"			    }, intrusive = true, float = true},
+		{ match = {"newsbeuter:.*"                  }, tag = "7:newsbeuter",},
+		{ match = {"::ncmpcpp.*",                   }, tag = "5:ncmpcpp",  },
+		{ match = {"MPlayer.*",                     }, tag = ":video", },
+		{ match = {"MilkyTracker.*","Sound.racker.*"}, tag = ":TRACKZ", },
+		{ match = {"Default - Wine desktop"         }, tag = ":Wine",         nopopup = true, },
+		{ match = {"Deluge","rtorrent"              }, tag = ":p2p",                          },
+		{ match = {"apvlv",                         }, tag = "8:PDF"},
+		{ match = {"Xpdf.*",                        }, tag = "8:PDF"},
+		{ match = {"gimp.toolbox",                 },  master = true , tag = ":gimp-tool" },
+		{ match = {"gimp.dock",                 },  slave = true , tag = ":gimp-tool" },
+		{ match = {"gimp-image-window",             }, master = true, tag = ":gimp" },
+		{ match = {"feh.*"                          }, tag = ":img",                       },
+		{ match = {"skype.*"                          }, tag = "9:skype",                       },
+		{ match = { "popterm",                          },  intrusive = true, struts = { bottom = 200 },
+								dockable = true, float = true, sticky = true  },
+		{ match = { "mc -.+"                       }, tag = ":fs:",                           },
+		{ match = { "" }, honorsizehints= true,
+				    buttons = {
+				     button({ }, 1, function (c) client.focus = c; c:raise() end),
+				     button({ modkey }, 1, function (c) awful.mouse.client.move() end),
+				     button({ modkey }, 3, awful.mouse.client.resize ), }, },
 
-       }
+	       }
 
 
 
--- }}}
+	-- }}}
 
--- {{{ Wibox
--- Create a textclock widget
-mytextclock = awful.widget.textclock({ layout = awful.widget.layout.horizontal.leftright })
+	-- {{{ Wibox
+	-- Create a textclock widget
+	mytextclock = awful.widget.textclock({ layout = awful.widget.layout.horizontal.leftright}, "%y.%m.%d %W | ", 30 )
 
--- Create a systray
-mysystray = widget({ type = "systray" })
--- Create a wibox for each screen and add it
-mywibox = {}
-mybwibox = {}
-mypromptbox = {}
-mylayoutbox = {}
-mpdbox = {}
-infobox = {}
-mytaglist = {}
-mytaglist.buttons = awful.util.table.join(
-                    awful.button({ }, 1, awful.tag.viewonly),
-                    awful.button({ modkey }, 1, awful.client.movetotag),
-                    awful.button({ }, 3, awful.tag.viewtoggle),
-                    awful.button({ modkey }, 3, awful.client.toggletag),
-                    awful.button({ }, 4, awful.tag.viewnext),
-                    awful.button({ }, 5, awful.tag.viewprev)
-                    )
-mytasklist = {}
-mytasklist.buttons = awful.util.table.join(
-                     awful.button({ }, 1, function (c)
-                                              if not c:isvisible() then
-                                                  awful.tag.viewonly(c:tags()[1])
-                                              end
-                                              client.focus = c
-                                              c:raise()
-                                          end),
-                     awful.button({ }, 3, function ()
-                                              if instance then
-                                                  instance:hide()
-                                                  instance = nil
-                                              else
-                                                  instance = awful.menu.clients({ width=250 })
-                                              end
-                                          end),
-                     awful.button({ }, 4, function ()
-                                              awful.client.focus.byidx(1)
-                                              if client.focus then client.focus:raise() end
-                                          end),
-                     awful.button({ }, 5, function ()
-                                              awful.client.focus.byidx(-1)
-                                              if client.focus then client.focus:raise() end
-                                          end))
+	-- Create a systray
+	mysystray = widget({ type = "systray" })
+	-- Create a wibox for each screen and add it
+	mywibox = {}
+	mybwibox = {}
+	mypromptbox = {}
+	mylayoutbox = {}
+	mpdbox = {}
+	infobox = {}
+	mytaglist = {}
+	mytaglist.buttons = awful.util.table.join(
+			    awful.button({ }, 1, awful.tag.viewonly),
+			    awful.button({ modkey }, 1, awful.client.movetotag),
+			    awful.button({ }, 3, awful.tag.viewtoggle),
+			    awful.button({ modkey }, 3, awful.client.toggletag),
+			    awful.button({ }, 4, awful.tag.viewnext),
+			    awful.button({ }, 5, awful.tag.viewprev)
+			    )
+	mytasklist = {}
+	mytasklist.buttons = awful.util.table.join(
+			     awful.button({ }, 1, function (c)
+						      if not c:isvisible() then
+							  awful.tag.viewonly(c:tags()[1])
+						      end
+						      client.focus = c
+						      c:raise()
+						  end),
+			     awful.button({ }, 3, function ()
+						      if instance then
+							  instance:hide()
+							  instance = nil
+						      else
+							  instance = awful.menu.clients({ width=250 })
+						      end
+						  end),
+			     awful.button({ }, 4, function ()
+						      awful.client.focus.byidx(1)
+						      if client.focus then client.focus:raise() end
+						  end),
+			     awful.button({ }, 5, function ()
+						      awful.client.focus.byidx(-1)
+						      if client.focus then client.focus:raise() end
+						  end))
 
-for s = 1, screen.count() do
-    -- Create a promptbox for each screen
-    mypromptbox[s] = awful.widget.prompt({ layout = awful.widget.layout.horizontal.leftright })
-    -- Create an mpd box for each screen
-    mpdbox = widget({ screen = 1, type = "textbox", layout = awful.widget.layout.horizontal.leftright })
-    -- The infobox
-    infobox = widget({ screen = 1, type = "textbox", layout = awful.widget.layout.horizontal.leftright })
-    -- Create an imagebox widget which will contains an icon indicating which layout we're using.
-    -- We need one layoutbox per screen.
-    mylayoutbox[s] = awful.widget.layoutbox(s)
-    --mylayoutbox[s] = widget({ layout = awful.widget.layout.horizontal.rightleft })
-    mylayoutbox[s]:buttons(awful.util.table.join(
-                           awful.button({ }, 1, function () awful.layout.inc(layouts, 1) end),
-                           awful.button({ }, 3, function () awful.layout.inc(layouts, -1) end),
-                           awful.button({ }, 4, function () awful.layout.inc(layouts, 1) end),
-                           awful.button({ }, 5, function () awful.layout.inc(layouts, -1) end)))
-    -- Create a taglist widget
-    mytaglist[s] = awful.widget.taglist(s, awful.widget.taglist.label.all, mytaglist.buttons)
-    -- Create a tasklist widget
-    mytasklist[s] = awful.widget.tasklist(function(c)
-                                              return awful.widget.tasklist.label.currenttags(c, s)
-                                          end, mytasklist.buttons)
+	for s = 1, screen.count() do
+	    -- Create a promptbox for each screen
+	    mypromptbox[s] = awful.widget.prompt({ layout = awful.widget.layout.horizontal.leftright })
+	    -- Create an mpd box for each screen
+	    mpdbox = widget({ screen = 1, type = "textbox", layout = awful.widget.layout.horizontal.leftright })
+	    -- The infobox
+	    infobox = widget({ screen = 1, type = "textbox", layout = awful.widget.layout.horizontal.leftright })
+	    -- Create an imagebox widget which will contains an icon indicating which layout we're using.
+	    -- We need one layoutbox per screen.
+	    mylayoutbox[s] = awful.widget.layoutbox(s)
+	    mylayoutbox[s]:buttons(awful.util.table.join(
+				   awful.button({ }, 1, function () awful.layout.inc(layouts, 1) end),
+				   awful.button({ }, 3, function () awful.layout.inc(layouts, -1) end),
+				   awful.button({ }, 4, function () awful.layout.inc(layouts, 1) end),
+				   awful.button({ }, 5, function () awful.layout.inc(layouts, -1) end)))
+	    -- Create a taglist widget
+	    mytaglist[s] = awful.widget.taglist(s, awful.widget.taglist.label.all, mytaglist.buttons)
+	    -- Create a tasklist widget
+	    mytasklist[s] = awful.widget.tasklist(function(c)
+						      return awful.widget.tasklist.label.currenttags(c, s)
+						  end, mytasklist.buttons)
 
-    -- Create the wibox
-    mywibox[s] = awful.wibox({ position = "top", screen = s, height = 37 })
-    -- Add widgets to the wibox - order matters
-    mywibox[s].widgets = {
-        {
-	    infobox,
-            mytextclock,
-            mytaglist[s],
-            mylayoutbox[s],
-            mypromptbox[s],
-	    mpdbox,
-            s == 1 and mysystray or nil,
-    	    layout = awful.widget.layout.horizontal.rightleft
-	},
-    {
-        mytasklist[s],
-	layout = awful.widget.layout.horizontal.leftright
-    },
-    layout = awful.widget.layout.vertical.flex
-    }
+	    -- Create the wibox
+	    mywibox[s] = awful.wibox({ position = "top", screen = s, height = 37 })
+	    -- Add widgets to the wibox - order matters
+	    mywibox[s].widgets = {
+		{
+		    infobox,
+		    mytextclock,
+		    mytaglist[s],
+		    mypromptbox[s],
+		    mpdbox,
+		    s == 1 and mysystray or nil,
+		    mylayoutbox[s],
+		    layout = awful.widget.layout.horizontal.rightleft
+		},
+	    {
+		mytasklist[s],
+		layout = awful.widget.layout.horizontal.leftright
+	    },
+	    layout = awful.widget.layout.vertical.flex
+	    }
 
-end
--- }}}
+	end
+	-- }}}
 
 --{{{ Functions
 
@@ -361,6 +362,25 @@ end
 
 --}}}
 
+-- {{{ Menu
+-- Create a laucher widget and a main menu
+myawesomemenu = {
+   { "manual", terminal .. " -e man awesome" },
+   { "edit config", editor_cmd .. " " .. awful.util.getdir("config") .. "/rc.lua" },
+   { "restart", awesome.restart },
+   { "quit", awesome.quit }
+}
+todomenu = {
+   {"add", terminal },
+   {"remove", terminal }
+}
+mymainmenu = awful.menu({ items = { 
+                                    { "todomenu", todomenu, beautiful.awesome_icon },
+                                    { "open terminal", terminal }
+                                  }
+                        })
+-- }}}
+
 -- {{{ Mouse bindings
 root.buttons(awful.util.table.join(
     awful.button({ }, 3, function () mymainmenu:toggle() end),
@@ -374,12 +394,13 @@ globalkeys = awful.util.table.join(
     awful.key({ modkey,           }, "Tab",   awful.tag.viewprev       ),
     awful.key({ modkey, "Shift"   }, "Tab",  awful.tag.viewnext       ),
     awful.key({ modkey,           }, "Escape", awful.tag.history.restore),
-    awful.key({ modkey            }, "t",           function() shifty.add({ rel_index = 1 }) end),
-    awful.key({ modkey, "Control" }, "t",           function() shifty.add({ rel_index = 1, nopopup = true }) end),
+    awful.key({ modkey            }, "n",           function() shifty.add({ rel_index = 1 }) end),
+    awful.key({ modkey, "Control" }, "n",           function() shifty.add({ rel_index = 1, nopopup = true }) end),
     awful.key({ modkey, "Shift"   }, "r",           shifty.rename),
     awful.key({ modkey, "Control" }, "x",           shifty.delete),
     awful.key({ modkey, "Shift"   }, "o",      function() shifty.set(awful.tag.selected(mouse.screen), { screen = awful.util.cycle(screen.count() , mouse.screen + 1) }) end),
 
+    awful.key({ modkey,           }, "t", function () mymainmenu:toggle(true)        end),
 
     awful.key({ modkey,           }, "j",
         function ()
@@ -401,6 +422,7 @@ globalkeys = awful.util.table.join(
     
     -- Standard program
     awful.key({ modkey,           }, "Return", function () awful.util.spawn(terminal) end),
+    awful.key({ modkey,           }, "Scroll_Lock", function () awful.util.spawn(locker) end),
     awful.key({ modkey,           }, "F12", awesome.restart),
     awful.key({ modkey,           }, "F11", awesome.quit),
 
