@@ -8,7 +8,7 @@ theme.font          = "fixed 9"
 
 theme.bg_normal     = "#161616"
 theme.bg_focus      = "#3e3e3e"
-theme.bg_urgent     = "#6e3e3e"
+theme.bg_urgent     = "#303030"
 theme.bg_minimize   = "#444444"
 
 theme.fg_normal     = "#c8c8c8"
