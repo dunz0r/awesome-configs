@@ -196,13 +196,13 @@
 	    -- Add widgets to the wibox - order matters
 	    mywibox[s].widgets = {
 		{
+		    mylayoutbox[s],
 		    infobox,
 		    mytextclock,
 		    mytaglist[s],
 		    mypromptbox[s],
 		    mpdbox,
 		    s == 1 and mysystray or nil,
-		    mylayoutbox[s],
 		    layout = awful.widget.layout.horizontal.rightleft
 		},
 	    {
@@ -423,8 +423,12 @@ globalkeys = awful.util.table.join(
     awful.key({ modkey,           }, "Scroll_Lock", function () awful.util.spawn(locker) end),
     awful.key({ modkey,           }, "F12", awesome.restart),
     awful.key({ modkey,           }, "F11", awesome.quit),
-
+    -- MPD related
     awful.key({ modkey,           }, "p",     function () naughty.notify{ text = get_playlist() } end),
+    awful.key({ modkey, "Shift"   }, ",", function () mpc:previous() ; mpdbox.text = get_mpd() end),
+    awful.key({ modkey,           }, "9", function () mpc:toggle_play() ; mpdbox.text = get_mpd() end),
+    awful.key({ modkey,           }, "8", function () mpc:stop() ; mpdbox.text = get_mpd() end),
+    awful.key({ modkey, "Shift"   }, ".", function () mpc:next() ; mpdbox.text= get_mpd() end),
 
     awful.key({ modkey, "Control" }, "p", function ()
       awful.prompt.run({ prompt = "Paste to: "},
@@ -432,6 +436,8 @@ globalkeys = awful.util.table.join(
       function (s) paste(s) end,
 	      awful.completion.shell) 
 	end),
+    awful.key({ modkey, "Shift"    }, "p", function () paste("/home/dunz0r/.pastebin") end),
+
     awful.key({ modkey,           }, "l",     function () awful.tag.incmwfact( 0.05)    end),
     awful.key({ modkey,           }, "h",     function () awful.tag.incmwfact(-0.05)    end),
     awful.key({ modkey, "Shift"   }, "h",     function () awful.tag.incnmaster( 1)      end),
