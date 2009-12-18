@@ -123,7 +123,7 @@
 
 	-- {{{ Wibox
 	-- Create a textclock widget
-	mytextclock = awful.widget.textclock({ layout = awful.widget.layout.horizontal.leftright}, "%y.%m.%d %W | ", 30 )
+	mytextclock = awful.widget.textclock({ layout = awful.widget.layout.horizontal.leftright}, "%y.%m.%d.%H.%M %W | ", 30 )
 
 	-- Create a systray
 	mysystray = widget({ type = "systray" })
@@ -399,8 +399,6 @@ globalkeys = awful.util.table.join(
     awful.key({ modkey, "Shift"   }, "r",           shifty.rename),
     awful.key({ modkey, "Control" }, "x",           shifty.delete),
     awful.key({ modkey, "Shift"   }, "o",      function() shifty.set(awful.tag.selected(mouse.screen), { screen = awful.util.cycle(screen.count() , mouse.screen + 1) }) end),
-
-    awful.key({ modkey,           }, "t", function () mymainmenu:toggle(true)        end),
 
     awful.key({ modkey,           }, "j",
         function ()
