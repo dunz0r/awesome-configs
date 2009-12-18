@@ -23,7 +23,7 @@
 	editor = os.getenv("EDITOR") or "vim"
 	editor_cmd = terminal .. " -e " .. editor
 	locker = "xlock"
-
+	browser = "uzbl-browser"
 	-- Default modkey.
 	-- Usually, Mod4 is the key with a logo between Control and Alt.
 	-- If you do not like this or do not have such a key,
@@ -428,6 +428,7 @@ globalkeys = awful.util.table.join(
     awful.key({ modkey, "Shift"   }, ",", function () mpc:previous() ; mpdbox.text = get_mpd() end),
     awful.key({ modkey,           }, "9", function () mpc:toggle_play() ; mpdbox.text = get_mpd() end),
     awful.key({ modkey,           }, "8", function () mpc:stop() ; mpdbox.text = get_mpd() end),
+    awful.key({ modkey,           }, "7", function () mpc:toggle_random() ; infobox.text = "toggled random" end),
     awful.key({ modkey, "Shift"   }, ".", function () mpc:next() ; mpdbox.text= get_mpd() end),
 
     awful.key({ modkey, "Control" }, "p", function ()
