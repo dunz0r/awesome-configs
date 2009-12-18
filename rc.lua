@@ -11,8 +11,8 @@
 	-- MPD library
 	require("lib/mpd") ; mpc = mpd.new()
 	-- For sending to sockets
-	socket = require"socket"
-	socket.unix = require"socket.unix"
+--	socket = require"socket"
+--	socket.unix = require"socket.unix"
 	-- {{{ Variable definitions
 	-- Themes define colours, icons, and wallpapers
 	theme_path = os.getenv("HOME") .. "/.config/awesome/theme.lua"
