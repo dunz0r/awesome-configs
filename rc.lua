@@ -24,6 +24,8 @@
 	editor_cmd = terminal .. " -e " .. editor
 	locker = "xlock"
 	browser = "uzbl-browser"
+	-- where to paste
+	pastebin = os.getenv("HOME") .. "/.pastebin"
 	-- Default modkey.
 	-- Usually, Mod4 is the key with a logo between Control and Alt.
 	-- If you do not like this or do not have such a key,
@@ -46,6 +48,12 @@
 	    awful.layout.suit.max.fullscreen,
 	    awful.layout.suit.magnifier,
 	    awful.layout.suit.floating
+	}
+	-- Table of layouts to use on the 2:www tag
+	wwwlayouts = 
+	{
+	    awful.layout.suit.max,
+	    awful.layout.suit.fair
 	}
 	-- }}}
 
@@ -70,7 +78,13 @@
 	}
 	shifty.config.tags = {
 	   ["1:irc"] = { position = 1, screen = 2, spawn = "urxvtc -tn screen.linux -name SSH -title '::irssi::' -e ssh -C dunz0r@10.0.0.1 -t screen -D -RR", },
-	   ["2:www"] = { solitary = true, position = 2, max_clients = 4, exclusive = false, layout = awful.layout.suit.max, nopopup = true, spawn = "uzbl-browser",    },
+	   ["2:www"] = { solitary = true, position = 2, max_clients = 5,
+	                 --[[keys = { 
+	                 	     awful.key({ "Ctrl" }, "y", function () awful.layout.set(awful.layout.suit.tile) end),
+	                         awful.key({ "Ctrl", "Shift" }, "y", function () awful.layout.set(awful.layout.suit.max) end),
+	                        },
+	                        --]]
+	                 exclusive = false, layout = awful.layout.suit.max, nopopup = true, spawn = "uzbl-browser",    },
 	  ["3:term"] = { persist = true, position = 3, },
 	  ["5:ncmpcpp"] = { nopopup = true, persist = false, position = 5, screen = 2, spawn = "urxvtc -name '::ncmpcpp::' -title '::ncmpcpp::' -e ncmpcpp" },
 	  ["6:code"] = { spawn = terminal .. " -title '- VIM' -e " .. editor, nopopup = false, position = 6, layout = awful.layout.suit.max.fullscreen,        },
@@ -88,7 +102,9 @@
 
 	shifty.config.apps = {
 		{ match = { "::irssi.*",                    }, tag = "1:irc", },
-		{ match = {"Shiretoko.*", "Vimperator.*", "uzbl"       }, tag = "2:www", },
+		{ match = {"Shiretoko.*", "Vimperator.*", "uzbl"       }, keys = { 
+			    awful.key({ modkey, }, "y", function () naughty.notify({ text = "funkar" }) end),
+			}, tag = "2:www", },
 		{ match = {"urxvt"                          }, tag = "3:term",     },
 		{ match = {"term:.*"                        }, tag = "3:term",     },
 		{ match = {".* - VIM"                       }, tag = "6:code",     },
@@ -106,11 +122,9 @@
 		{ match = {"gimp-image-window",             }, master = true, tag = ":gimp" },
 		{ match = {"feh.*"                          }, tag = ":img",                       },
 		{ match = {"skype.*"                          }, tag = "9:skype",                       },
-		{ match = { "popterm",                          },  intrusive = true, struts = { bottom = 200 },
-								dockable = true, float = true, sticky = true  },
 		{ match = { "mc -.+"                       }, tag = ":fs:",                           },
 		{ match = { "" }, honorsizehints= true,
-				    buttons = {
+				 buttons = {
 				     button({ }, 1, function (c) client.focus = c; c:raise() end),
 				     button({ modkey }, 1, function (c) awful.mouse.client.move() end),
 				     button({ modkey }, 3, awful.mouse.client.resize ), }, },
@@ -400,6 +414,9 @@ globalkeys = awful.util.table.join(
     awful.key({ modkey, "Control" }, "x",           shifty.delete),
     awful.key({ modkey, "Shift"   }, "o",      function() shifty.set(awful.tag.selected(mouse.screen), { screen = awful.util.cycle(screen.count() , mouse.screen + 1) }) end),
 
+    --awful.key({ modkey,           }, "y", function () awful.layout.set(awful.layout.suit.fair) end),
+   --awful.key({ modkey, "Shift"   }, "y", function () awful.layout.set(awful.layout.suit.max) end),
+    awful.key({ modkey,           }, "y", function () awful.layout.inc(wwwlayouts,  1) end),
     awful.key({ modkey,           }, "j",
         function ()
             awful.client.focus.byidx( 1)
@@ -423,6 +440,9 @@ globalkeys = awful.util.table.join(
     awful.key({ modkey,           }, "Scroll_Lock", function () awful.util.spawn(locker) end),
     awful.key({ modkey,           }, "F12", awesome.restart),
     awful.key({ modkey,           }, "F11", awesome.quit),
+    -- devtodo
+    awful.key({ modkey,           }, "t", function() show_todo() end),
+
     -- MPD related
     awful.key({ modkey,           }, "p",     function () naughty.notify{ text = get_playlist() } end),
     awful.key({ modkey, "Shift"   }, ",", function () mpc:previous() ; mpdbox.text = get_mpd() end),
@@ -437,7 +457,7 @@ globalkeys = awful.util.table.join(
       function (s) paste(s) end,
 	      awful.completion.shell) 
 	end),
-    awful.key({ modkey, "Shift"    }, "p", function () paste("/home/dunz0r/.pastebin") end),
+    awful.key({ modkey, "Shift"    }, "p", function () paste() end),
 
     awful.key({ modkey,           }, "l",     function () awful.tag.incmwfact( 0.05)    end),
     awful.key({ modkey,           }, "h",     function () awful.tag.incmwfact(-0.05)    end),
@@ -448,6 +468,10 @@ globalkeys = awful.util.table.join(
     awful.key({ modkey,           }, "space", function () awful.layout.inc(layouts,  1) end),
     awful.key({ modkey, "Shift"   }, "space", function () awful.layout.inc(layouts, -1) end),
 
+    -- Switch between awful.layout.suit.max and awful.layout.suit.fair if we are on tag 2:www
+    -- else do nothing.
+    --awful.key({ modkey,           }, "y",   function () if awful.layout.getname == awful.layout.suit.max then awful.layout.set(awful.layout.suit.fair) end end),
+    --awful.key({ modkey,           }, "`",   naugthy.notify{ text = awful.tag.getproperty(awful.tag, name) }),
     -- Prompt
     awful.key({ modkey            }, "r",     function () mypromptbox[mouse.screen]:run() end),
 

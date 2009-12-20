@@ -40,7 +40,7 @@ theme.taglist_squares_resize = "false"
 theme.awesome_icon           = "/usr/share/awesome/themes/zenburn/awesome-icon.png"
 theme.menu_submenu_icon      = "/usr/share/awesome/themes/default/submenu.png"
 theme.tasklist_floating_icon = "/usr/share/awesome/themes/default/tasklist/floatingw.png"
-theme.wallpaper_cmd         = {"feh --bg-seamless .wallpaper"}
+theme.wallpaper_cmd         = {"feh --bg-tile .wallpaper"}
 -- }}}
 
 -- {{{ Layout
