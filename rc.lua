@@ -102,9 +102,7 @@
 
 	shifty.config.apps = {
 		{ match = { "::irssi.*",                    }, tag = "1:irc", },
-		{ match = {"Shiretoko.*", "Vimperator.*", "uzbl"       }, keys = { 
-			    awful.key({ modkey, }, "y", function () naughty.notify({ text = "funkar" }) end),
-			}, tag = "2:www", },
+		{ match = {"Shiretoko.*", "Vimperator.*", "uzbl"       }, tag = "2:www" },
 		{ match = {"urxvt"                          }, tag = "3:term",     },
 		{ match = {"term:.*"                        }, tag = "3:term",     },
 		{ match = {".* - VIM"                       }, tag = "6:code",     },
