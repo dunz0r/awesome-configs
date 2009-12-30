@@ -409,7 +409,7 @@ globalkeys = awful.util.table.join(
     awful.key({ modkey,           }, "Escape", awful.tag.history.restore),
     awful.key({ modkey            }, "n",           function() shifty.add({ rel_index = 1 }) end),
     awful.key({ modkey, "Control" }, "n",           function() shifty.add({ rel_index = 1, nopopup = true }) end),
-    awful.key({ modkey, "Shift"   }, "r",           shifty.rename),
+    awful.key({ modkey,           }, "c",           shifty.rename),
     awful.key({ modkey, "Control" }, "x",           shifty.delete),
     awful.key({ modkey, "Shift"   }, "o",      function() shifty.set(awful.tag.selected(mouse.screen), { screen = awful.util.cycle(screen.count() , mouse.screen + 1) }) end),
 
@@ -437,11 +437,12 @@ globalkeys = awful.util.table.join(
     -- Standard program
     awful.key({ modkey,           }, "Return", function () awful.util.spawn(terminal) end),
     awful.key({ modkey,           }, "Scroll_Lock", function () awful.util.spawn(locker) end),
-    awful.key({ modkey,           }, "F12", awesome.restart),
-    awful.key({ modkey,           }, "F11", awesome.quit),
+    awful.key({ modkey,           }, "F12", awesome.quit),
+    awful.key({ modkey,           }, "F11", awesome.restart),
     -- devtodo
     awful.key({ modkey,           }, "t", function() show_todo() end),
-
+    -- Start a new vim window
+    awful.key({modkey,  "Mod1"    }, "e", function () awful.util.spawn(terminal .. " -title '- VIM' -e " .. editor) end),
     -- MPD related
     awful.key({ modkey,           }, "p", function () naughty.notify{ text = get_playlist() } end),
     awful.key({ modkey, "Shift"   }, ",", function () mpc:previous() ; mpdbox.text = get_mpd() end),
