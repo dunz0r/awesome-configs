@@ -134,7 +134,7 @@
 
 		-- {{{ Wibox
 		-- Create a textclock widget
-		mytextclock = awful.widget.textclock({ layout = awful.widget.layout.horizontal.leftright}, "%y.%m.%d.%H.%M %V | ", 30 )
+		mytextclock = awful.widget.textclock({ layout = awful.widget.layout.horizontal.leftright}, "%y.%m.%d.%H.%M %W | ", 30 )
 
 		-- Create a systray
 		mysystray = widget({ type = "systray" })
