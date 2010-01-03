@@ -87,7 +87,7 @@
 						 exclusive = false, layout = awful.layout.suit.max, nopopup = true, spawn = "uzbl-browser",    },
 		  ["3:term"] = { persist = true, position = 3, },
 		  ["5:ncmpcpp"] = { nopopup = true, persist = false, position = 5, screen = 2, spawn = "urxvtc -name '::ncmpcpp::' -title '::ncmpcpp::' -e ncmpcpp" },
-		  ["6:code"] = { spawn = terminal .. " -title '- VIM' -e " .. editor, nopopup = false, position = 6, layout = awful.layout.suit.max.fullscreen,        },
+		  ["6:code"] = { spawn = terminal .. " -title '- VIM' -e " .. editor, nopopup = false, position = 6, layout = awful.layout.suit.max,        },
 			 [":p2p"] = { icon = "/usr/share/pixmaps/p2p.png", icon_only = true, },
 			[":gimp"] = { spawn = "gimp", layout = awful.layout.suit.max.fullscreen, sweep_delay = 2, screen = 1,  },
 			[":gimp-tool"] = { layout = "tile", sweep_delay = 2, screen = 2,  },
@@ -134,7 +134,7 @@
 
 		-- {{{ Wibox
 		-- Create a textclock widget
-		mytextclock = awful.widget.textclock({ layout = awful.widget.layout.horizontal.leftright}, "%y.%m.%d.%H.%M %W | ", 30 )
+		mytextclock = awful.widget.textclock({ layout = awful.widget.layout.horizontal.leftright}, "%y.%m.%d.%H.%M %V | ", 30 )
 
 		-- Create a systray
 		mysystray = widget({ type = "systray" })
