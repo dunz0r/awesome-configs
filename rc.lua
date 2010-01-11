@@ -24,6 +24,7 @@
 		editor_cmd = terminal .. " -e " .. editor
 		locker = "xlock"
 		browser = "uzbl-browser"
+		musicdir = "/home/dunz0r/warez/music/"
 		-- where to paste
 		pastebin = os.getenv("HOME") .. "/.pastebin"
 		-- Default modkey.
@@ -255,16 +256,25 @@ return mpd_text
 end
 --}}}
 
+--{{{ get and display the album image in mpd
+	function album_art()
+		local stats = mpc:send("status")
+		local zstats = mpc:send("playlistid " .. stats.songid)
+		art = musicdir .. string.match(zstats.file, ".*/") .. "cover.jpg"
+		return art
+	end
+--}}}
+
 --{{{ Get playlist
 function get_playlist ()
 	local stats = mpc:send("status")
 	local cur = stats.song
   local list = ""
-	for i = stats.song-4,stats.song+5
+	for i = stats.song-7,stats.song+6
 		do
 		zstats = mpc:send("playlistinfo " .. i)
 		if zstats.pos == stats.song then
-			list = list .. "<span color='#FF0000'> " .. zstats.pos .. ". " .. awful.util.escape(zstats.artist .. " - " .. (zstats.title or zstats.file)) .. "</span>\n"
+			list = list .. "<span color='#FF0000'> " .. zstats.pos .. ". " .. awful.util.escape((zstats.artist or "NA") .. " - " .. (zstats.title or zstats.file)) .. "</span>\n"
 		else
 			list = list .. " " .. zstats.pos .. ". " .. awful.util.escape(zstats.artist .. " - " .. (zstats.title or zstats.file) ) .. "\n"
 		end
@@ -443,9 +453,10 @@ globalkeys = awful.util.table.join(
     -- devtodo
     awful.key({ modkey,           }, "t", function() show_todo() end),
     -- Start a new vim window
-    awful.key({modkey,  "Mod1"    }, "e", function () awful.util.spawn(terminal .. " -title '- VIM' -e " .. editor) end),
+	--awful.key({modkey,  "Mod1"    }, "e", function () awful.util.spawn(terminal .. " -title '- VIM' -e " .. editor) end),
     -- MPD related
-    awful.key({ modkey,           }, "p", function () naughty.notify{ text = get_playlist() } end),
+    awful.key({ modkey,           }, "p", function () naughty.notify{ icon = album_art(), icon_size= 128, text = get_playlist() } end),
+    awful.key({ modkey, "Mod1"    }, "p", function () naughty.notify{ icon = "/home/dunz0r/gfx/def-cover.png", icon_size = 32 , text = get_playlist() } end),
     awful.key({ modkey, "Shift"   }, ",", function () mpc:previous() ; mpdbox.text = get_mpd() end),
     awful.key({ modkey,           }, "9", function () mpc:toggle_play() ; mpdbox.text = get_mpd() end),
     awful.key({ modkey,           }, "8", function () mpc:stop() ; mpdbox.text = get_mpd() end),
