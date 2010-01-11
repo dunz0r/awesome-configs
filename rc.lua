@@ -136,7 +136,7 @@
 
 		-- {{{ Wibox
 		-- Create a textclock widget
-		mytextclock = awful.widget.textclock({ layout = awful.widget.layout.horizontal.leftright}, "%y.%m.%d.%H.%M %W | ", 30 )
+		mytextclock = awful.widget.textclock({ layout = awful.widget.layout.horizontal.leftright}, " | %y.%m.%d.%H.%M %W | ", 30 )
 
 		-- Create a systray
 		mysystray = widget({ type = "systray" })
@@ -250,7 +250,7 @@ function get_mpd()
    else
      now_playing = awful.util.escape(now_playing)
    end
-   mpd_text = now_playing .. " | "
+   mpd_text = now_playing
  end
 return mpd_text
 end
@@ -455,7 +455,7 @@ globalkeys = awful.util.table.join(
     -- Start a new vim window
 	--awful.key({modkey,  "Mod1"    }, "e", function () awful.util.spawn(terminal .. " -title '- VIM' -e " .. editor) end),
     -- MPD related
-    awful.key({ modkey,           }, "p", function () naughty.notify{ icon = album_art(), icon_size= 128, text = get_playlist() } end),
+    awful.key({ modkey,           }, "p", function () naughty.notify{ position = "bottom_right", title = get_mpd(), icon = album_art(), icon_size= 128, text = get_playlist() } end),
     awful.key({ modkey, "Mod1"    }, "p", function () naughty.notify{ icon = "/home/dunz0r/gfx/def-cover.png", icon_size = 32 , text = get_playlist() } end),
     awful.key({ modkey, "Shift"   }, ",", function () mpc:previous() ; mpdbox.text = get_mpd() end),
     awful.key({ modkey,           }, "9", function () mpc:toggle_play() ; mpdbox.text = get_mpd() end),
