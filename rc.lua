@@ -96,7 +96,8 @@
 			  [":video"] = { nopopup = false, rel_index= 1, layout = awful.layout.suit.float, screen = 1, },
 			  ["9:skype"] = { layout = awful.layout.suit.tile, screen = 2, mwfact = 0.6, position = 9, spawn = "skype-pulse", },
 			  ["8:PDF"] = { layout = awful.layout.suit.fair, position = 8, nopopup = false },
-			  [":img"] = { layout = awful.layout.suit.max.fullscreen, screen = 1, nopopup = false, spawn = "feh -F /home/dunz0r/gfx/*", }
+			  [":img"] = { layout = awful.layout.suit.max.fullscreen, screen = 1, nopopup = false, spawn = "feh -F /home/dunz0r/gfx/*", },
+			  ["cssh"] = { layout = awful.layout.suit.float, screen = 1, nopopup = false, exclusive = false, }
 		}
 
 		shifty.config.apps = {
