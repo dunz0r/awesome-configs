@@ -4,7 +4,7 @@
 
 theme = {}
 
-theme.font          = "gelly.se 8"
+theme.font          = "Envy Code R 9"
 
 theme.bg_normal     = "#161616"
 theme.bg_focus      = "#3e3e3e"
@@ -40,7 +40,7 @@ theme.taglist_squares_resize = "false"
 theme.awesome_icon           = "/usr/share/awesome/themes/zenburn/awesome-icon.png"
 theme.menu_submenu_icon      = "/usr/share/awesome/themes/default/submenu.png"
 theme.tasklist_floating_icon = "/usr/share/awesome/themes/default/tasklist/floatingw.png"
-theme.wallpaper_cmd         = {"feh --bg-tile .wallpaper"}
+theme.wallpaper_cmd         = {"Esetroot -m .wallpaper"}
 -- }}}
 
 -- {{{ Layout
