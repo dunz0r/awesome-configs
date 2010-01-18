@@ -284,8 +284,8 @@ end
 
 --{{{ Add a todo note
 
-	function addtodo (todo)
-		infobox.text = "| <b><u>todo:</u></b> " .. "<span color='#FF00FF'>" .. awful.util.spawn("todo --add --priority high " .. "'" .. todo .. "'") .. "</span>"
+	function add_todo (todo)
+		infobox.text = "| <b><u>todo:</u></b> " .. "<span color='#FF00FF'>" .. awful.util.spawn("todo --add --priority  " .. "'" .. todo .. "'") .. "</span>"
 	end
 --}}}
 
@@ -424,17 +424,30 @@ globalkeys = awful.util.table.join(
     awful.key({ modkey, "Shift"   }, "o",      function() shifty.set(awful.tag.selected(mouse.screen), { screen = awful.util.cycle(screen.count() , mouse.screen + 1) }) end),
 
 	-- testarooni
-    awful.key({ modkey,           }, "t", function() 
-	keybind.key({}, "d", "Display todo", function () 
-		show_todo()
+	
+	awful.key({ modkey,           }, "t", function () 
+		keybind.push({
+			keybind.key({}, "Escape", "cancel", function ()
+			keybind.pop()
+		end),
+		keybind.key({}, "d", "show todos", function ()
+			show_todo()
+			keybind.pop()
+		end),
+		keybind.key({}, "a", "add a todo", function ()
+			awful.prompt.run(
+			{ prompt = "add a todo note:"},
+			mypromptbox[mouse.screen].widget,
+		function (t)
+			add_todo(t)
+		end,
+		awful.completion.bash
+		)
 		keybind.pop()
-	end)
-	keybind.key({}, "a", "Add a todo", function () 
-		add_todo()
-		keybind.pop()
-	end)
+		end),
+	}, "devtodo")
 	end),
-	-- switch layouts on the 2:www tag
+    -- switch layouts on the 2:www tag
     awful.key({ modkey,           }, "y", function () awful.layout.inc(wwwlayouts,  1) end),
 
     awful.key({ modkey,           }, "j",
