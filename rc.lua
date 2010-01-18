@@ -8,11 +8,10 @@
 		require("naughty")
 		-- Dynamic Tagging
 		require("lib/shifty")
-		-- MPD library
+		-- kAwouru's MPD library
 		require("lib/mpd") ; mpc = mpd.new()
-		-- For sending to sockets
-	--	socket = require"socket"
-	--	socket.unix = require"socket.unix"
+		-- Keybind libraray by ierton
+		require("lib/keybind")
 		-- {{{ Variable definitions
 		-- Themes define colours, icons, and wallpapers
 		theme_path = os.getenv("HOME") .. "/.config/awesome/theme.lua"
@@ -78,7 +77,7 @@
 		  nopopup = true
 		}
 		shifty.config.tags = {
-		   ["1:irc"] = { position = 1, screen = 2, spawn = "urxvtc -tn screen.linux -name SSH -title '::irssi::' -e ssh -C dunz0r@10.0.0.1 -t screen -D -RR", },
+		   ["1:irc"] = { position = 1, screen = 2, spawn = "urxvtc -tn xterm -name SSH -title '::irssi::' -e ssh -C dunz0r@10.0.0.1 -t screen -t xterm -D -RR", },
 		   ["2:www"] = { solitary = true, position = 2, max_clients = 5,
 						 --[[keys = { 
 								 awful.key({ "Ctrl" }, "y", function () awful.layout.set(awful.layout.suit.tile) end),
@@ -424,9 +423,20 @@ globalkeys = awful.util.table.join(
     awful.key({ modkey, "Control" }, "x",           shifty.delete),
     awful.key({ modkey, "Shift"   }, "o",      function() shifty.set(awful.tag.selected(mouse.screen), { screen = awful.util.cycle(screen.count() , mouse.screen + 1) }) end),
 
-    --awful.key({ modkey,           }, "y", function () awful.layout.set(awful.layout.suit.fair) end),
-   --awful.key({ modkey, "Shift"   }, "y", function () awful.layout.set(awful.layout.suit.max) end),
+	-- testarooni
+    awful.key({ modkey,           }, "t", function() 
+	keybind.key({}, "d", "Display todo", function () 
+		show_todo()
+		keybind.pop()
+	end)
+	keybind.key({}, "a", "Add a todo", function () 
+		add_todo()
+		keybind.pop()
+	end)
+	end),
+	-- switch layouts on the 2:www tag
     awful.key({ modkey,           }, "y", function () awful.layout.inc(wwwlayouts,  1) end),
+
     awful.key({ modkey,           }, "j",
         function ()
             awful.client.focus.byidx( 1)
@@ -451,7 +461,7 @@ globalkeys = awful.util.table.join(
     awful.key({ modkey,           }, "F12", awesome.quit),
     awful.key({ modkey,           }, "F11", awesome.restart),
     -- devtodo
-    awful.key({ modkey,           }, "t", function() show_todo() end),
+    --awful.key({ modkey,           }, "t", function() show_todo() end),
     -- Start a new vim window
 	--awful.key({modkey,  "Mod1"    }, "e", function () awful.util.spawn(terminal .. " -title '- VIM' -e " .. editor) end),
     -- MPD related
