@@ -79,11 +79,6 @@
 		shifty.config.tags = {
 		   ["1:irc"] = { position = 1, screen = 2, spawn = "urxvtc -tn xterm -name SSH -title '::irssi::' -e ssh -C dunz0r@10.0.0.1 -t screen -t xterm -D -RR", },
 		   ["2:www"] = { solitary = true, position = 2, max_clients = 5,
-						 --[[keys = { 
-								 awful.key({ "Ctrl" }, "y", function () awful.layout.set(awful.layout.suit.tile) end),
-								 awful.key({ "Ctrl", "Shift" }, "y", function () awful.layout.set(awful.layout.suit.max) end),
-								},
-								--]]
 						 exclusive = false, layout = awful.layout.suit.max, nopopup = true, spawn = "uzbl-browser",    },
 		  ["3:term"] = { persist = true, position = 3, },
 		  ["5:ncmpcpp"] = { nopopup = true, persist = false, position = 5, screen = 2, spawn = "urxvtc -name '::ncmpcpp::' -title '::ncmpcpp::' -e ncmpcpp" },
@@ -285,8 +280,21 @@ end
 --{{{ Add a todo note
 
 	function add_todo (todo)
-		infobox.text = "| <b><u>todo:</u></b> " .. "<span color='#FF00FF'>" .. awful.util.spawn("todo --add --priority  " .. "'" .. todo .. "'") .. "</span>"
+		naughty.notify({
+		text = "<b><u>devtodo: </u></b> " .. "<span color='" .. beautiful.fg_focus .. "'>" .. awful.util.pread("todo --add --priority  " .. todo) .. "</span>",
+		timeout = 6
+		})
 	end
+--}}}
+
+--{{{ Show todos
+    function show_todo()
+        local todo = awful.util.pread("todo --mono")
+        todo = naughty.notify({
+            text = "<b><u>devtodo</u></b>\n" .. "<span color='" .. beautiful.fg_focus .. "'>".. string.format(os.date("%a, %d %B %Y") .. "</span>" .. "\n" .. todo),
+            timeout = 6,
+        })
+    end
 --}}}
 
 --{{{ Shows batteryinfo for (adapter)
@@ -331,16 +339,6 @@ function get_load_temp(sensor)
 end
 --}}}
 
---{{{ Show todos
-    function show_todo()
-        local todo = awful.util.pread("todo --mono")
-        todo = naughty.notify({
-            text = string.format(os.date("%a, %d %B %Y") .. "\n" .. todo),
-            timeout = 6,
-            width = 300,
-        })
-    end
---}}}
 
 --{{{ Show paste
     function show_paste()
@@ -383,6 +381,7 @@ function uzbl_prompt(prompt, text, socket, command)
    --end)
 end
 --}}}
+
 --}}}
 
 -- {{{ Menu
@@ -436,7 +435,7 @@ globalkeys = awful.util.table.join(
 		end),
 		keybind.key({}, "a", "add a todo", function ()
 			awful.prompt.run(
-			{ prompt = "add a todo note:"},
+			{ prompt = "add a todo: "},
 			mypromptbox[mouse.screen].widget,
 		function (t)
 			add_todo(t)
@@ -445,6 +444,22 @@ globalkeys = awful.util.table.join(
 		)
 		keybind.pop()
 		end),
+		keybind.key({}, "r", "delete a todo", function ()
+			awful.prompt.run(
+			{ prompt = "delete todo: "},
+			mypromptbox[mouse.screen].widget,
+		function (t)
+			naughty.notify({
+				text = "<b><u>devtodo: </u></b> " .. "<span color='" .. beautiful.fg_focus .. "'>" .. "removed todo #" .. t .. "</span>",
+				timeout = 6,
+			})
+			awful.util.spawn("tdr " .. t)
+		end,
+		awful.completion.bash
+		)
+		keybind.pop()
+		end),
+
 	}, "devtodo")
 	end),
     -- switch layouts on the 2:www tag
