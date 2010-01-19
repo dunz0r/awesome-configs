@@ -231,10 +231,10 @@
 function get_mpd()
   local stats = mpc:send("status")
    if stats.errormsg then
-    mpd_text = "MPD not running? | "
+    local mpd_text = "MPD not running? | "
    else
     if stats.state == "stop" then
-  	 now_playing = " stopped"
+  	 local now_playing = " stopped"
     else
       local zstats = mpc:send("playlistid " .. stats.songid)
   	  now_playing = ( zstats.album  or "NA" ) .. "; " .. ( zstats.artist or "NA" ) .. " - " .. (zstats.title or string.gsub(zstats.file, ".*/", "" ) )
@@ -250,11 +250,11 @@ return mpd_text
 end
 --}}}
 
---{{{ get and display the album image in mpd
+--{{{ Get the album image
 	function album_art()
 		local stats = mpc:send("status")
 		local zstats = mpc:send("playlistid " .. stats.songid)
-		art = musicdir .. string.match(zstats.file, ".*/") .. "cover.jpg"
+		art = musicdir .. string.match(zstats.file, ".*/") .. "^.*jpg$"
 		return art
 	end
 --}}}
@@ -339,7 +339,6 @@ function get_load_temp(sensor)
 end
 --}}}
 
-
 --{{{ Show paste
     function show_paste()
         local paste = selection()
@@ -384,25 +383,7 @@ end
 
 --}}}
 
--- {{{ Menu
--- Create a laucher widget and a main menu
-myawesomemenu = {
-   { "manual", terminal .. " -e man awesome" },
-   { "edit config", editor_cmd .. " " .. awful.util.getdir("config") .. "/rc.lua" },
-   { "restart", awesome.restart },
-   { "quit", awesome.quit }
-}
-todomenu = {
-   {"add", terminal },
-   {"remove", terminal }
-}
-mymainmenu = awful.menu({ items = { 
-                                    { "todomenu", todomenu, beautiful.awesome_icon },
-                                    { "open terminal", terminal }
-                                  }
-                        })
--- }}}
-
+--{{{ Bindings
 -- {{{ Mouse bindings
 root.buttons(awful.util.table.join(
     awful.button({ }, 3, function () mymainmenu:toggle() end),
@@ -472,7 +453,16 @@ globalkeys = awful.util.table.join(
 			keybind.key({}, "p", "show playlist", function ()
 				naughty.notify{ position = "bottom_right", title = get_mpd(), icon = album_art(), icon_size= 128, text = get_playlist() }
 				keybind.pop()
-			end)
+			end),
+			keybind.key({}, "l", "next track" , function ()
+				mpc:next() ; mpdbox.text = get_mpd()
+				keybind.pop()
+			end),
+		keybind.key({}, "h", "previous track" , function ()
+				mpc:previous() ; mpdbox.text = get_mpd()
+				keybind.pop()
+			end),
+
 		}, "mpd")
 	end),
     -- switch layouts on the 2:www tag
@@ -506,7 +496,6 @@ globalkeys = awful.util.table.join(
     -- Start a new vim window
 	--awful.key({modkey,  "Mod1"    }, "e", function () awful.util.spawn(terminal .. " -title '- VIM' -e " .. editor) end),
     -- MPD related
-    awful.key({ modkey,           }, "p", function () naughty.notify{ position = "bottom_right", title = get_mpd(), icon = album_art(), icon_size= 128, text = get_playlist() } end),
     awful.key({ modkey, "Mod1"    }, "p", function () naughty.notify{ icon = "/home/dunz0r/gfx/def-cover.png", icon_size = 32 , text = get_playlist() } end),
     awful.key({ modkey, "Shift"   }, ",", function () mpc:previous() ; mpdbox.text = get_mpd() end),
     awful.key({ modkey,           }, "9", function () mpc:toggle_play() ; mpdbox.text = get_mpd() end),
@@ -606,7 +595,7 @@ root.keys(globalkeys)
 shifty.config.globalkeys = globalkeys
 shifty.config.clientkeys = clientkeys
 -- }}}
-
+--}}}
 shifty.taglist = mytaglist
 shifty.init()
 -- {{{ Rules
@@ -658,9 +647,9 @@ client.add_signal("manage", function (c, startup)
 end)
 
 boxtimer = timer { timeout = 5 }
-boxtimer:add_signal("timeout", function() 
+boxtimer:add_signal("timeout", function()
 	infobox.text = get_load_temp("THRM")
-	mpdbox.text = get_mpd() 
+	mpdbox.text = get_mpd()
 	end)
 boxtimer:start()
 mpdbox.text = get_mpd()
