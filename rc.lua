@@ -21,7 +21,7 @@
 		terminal = "urxvtc"
 		editor = os.getenv("EDITOR") or "vim"
 		editor_cmd = terminal .. " -e " .. editor
-		locker = "xlock"
+		locker = "vlock -n"
 		browser = "uzbl-browser"
 		musicdir = "/home/dunz0r/warez/music/"
 		-- where to paste
@@ -106,7 +106,7 @@
 			{ match = {"::ncmpcpp.*",                   }, tag = "5:ncmpcpp",  },
 			{ match = {"MPlayer.*",                     }, tag = ":video", },
 			{ match = {"MilkyTracker.*","Sound.racker.*"}, tag = ":TRACKZ", },
-			{ match = {"Default - Wine desktop"         }, tag = ":Wine",         nopopup = true, },
+			{ match = {"wine"         }, tag = ":Wine",         nopopup = true, },
 			{ match = {"Deluge","rtorrent"              }, tag = ":p2p",                          },
 			{ match = {"apvlv",                         }, tag = "8:PDF"},
 			{ match = {"Xpdf.*",                        }, tag = "8:PDF"},
@@ -282,7 +282,7 @@ end
 	function add_todo (todo)
 		naughty.notify({
 		text = "<b><u>devtodo: </u></b> " .. "<span color='" .. beautiful.fg_focus .. "'>" .. awful.util.pread("todo --add --priority  " .. todo) .. "</span>",
-		timeout = 6
+		timeout = 10
 		})
 	end
 --}}}
@@ -292,7 +292,7 @@ end
         local todo = awful.util.pread("todo --mono")
         todo = naughty.notify({
             text = "<b><u>devtodo</u></b>\n" .. "<span color='" .. beautiful.fg_focus .. "'>".. string.format(os.date("%a, %d %B %Y") .. "</span>" .. "\n" .. todo),
-            timeout = 6,
+            timeout = 10
         })
     end
 --}}}
