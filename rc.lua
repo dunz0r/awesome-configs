@@ -270,7 +270,7 @@ function get_playlist ()
 		if zstats.pos == stats.song then
 			list = list .. "<span color='#FF0000'> " .. zstats.pos .. ". " .. awful.util.escape((zstats.artist or "NA") .. " - " .. (zstats.title or zstats.file)) .. "</span>\n"
 		else
-			list = list .. " " .. zstats.pos .. ". " .. awful.util.escape(zstats.artist .. " - " .. (zstats.title or zstats.file) ) .. "\n"
+			list = list .. " " .. zstats.pos .. ". " .. awful.util.escape((zstats.artist or "NA") .. " - " .. (zstats.title or zstats.file) ) .. "\n"
 		end
 	end
     return list
@@ -422,7 +422,7 @@ globalkeys = awful.util.table.join(
     awful.key({ modkey, "Control" }, "x",           shifty.delete),
     awful.key({ modkey, "Shift"   }, "o",      function() shifty.set(awful.tag.selected(mouse.screen), { screen = awful.util.cycle(screen.count() , mouse.screen + 1) }) end),
 
-	-- testarooni
+	-- devtodo, modal bindings
 	
 	awful.key({ modkey,           }, "t", function () 
 		keybind.push({
@@ -461,6 +461,19 @@ globalkeys = awful.util.table.join(
 		end),
 
 	}, "devtodo")
+	end),
+
+	-- mpd, modal bindings
+	awful.key({ modkey,         }, "m", function ()
+		keybind.push({
+			keybind.key({}, "Escape", "cancel", function ()
+				keybind.pop()
+			end),
+			keybind.key({}, "p", "show playlist", function ()
+				naughty.notify{ position = "bottom_right", title = get_mpd(), icon = album_art(), icon_size= 128, text = get_playlist() }
+				keybind.pop()
+			end)
+		}, "mpd")
 	end),
     -- switch layouts on the 2:www tag
     awful.key({ modkey,           }, "y", function () awful.layout.inc(wwwlayouts,  1) end),
