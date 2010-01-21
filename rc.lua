@@ -322,7 +322,7 @@ end
  end
  --}}}
 
---{{{ get loadaverage and temperature
+--{{{ Get loadaverage and temperature
 function get_load_temp(sensor)
 	local lf = io.open("/proc/loadavg")
 	local tf = io.open("/proc/acpi/thermal_zone/" .. sensor .. "/temperature")
@@ -350,18 +350,26 @@ end
     end
 --}}}
 
---{{{ Shows the weather
-	function get_weather()
-		local weather = awful.util.pread(";wget -q -O - http://www.accuweather.com/m/en-us/EUR/SE/SW015/Upplands-Vasby/Forecast.aspx | sed -n '/Now/,/More Forecasts/p' | sed 's/<[^>]*>//g; s/^ [ ]*//g; s/&copy;/(c) /g; s/&amp;/and/;s/&deg;//g;s/&nbsp;//g;s/Details//g;s/|//g;s/Hourly//g;s/More Forecasts//'|uniq -u")
-		return weather
+--{{{ Get the weather
+	function get_weather(ret)
+	
+	if ret == 1 then	
+		local fp = io.open("/tmp/.weather")
+		local forecast = fp:read("*a")
+		fp:close()
+		return "<span color='" .. beautiful.fg_focus .. "'>" .. "weather for upplands väsby</span>\n"  .. forecast
+	else
+		os.execute("wget -q -O - http://www.accuweather.com/m/en-us/EUR/SE/SW015/Upplands-Vasby/Forecast.aspx | sed -n '/Now/,/More Forecasts/p' | sed 's/<[^>]*>//g; s/^ [ ]*//g; s/&copy;/(c) /g; s/&amp;/and/;s/&deg;//g;s/&nbsp;//g;s/Details//g;s/|//g;s/Hourly//g;s/More Forecasts//'|uniq -u > /tmp/.weather &")
+		return ""
+	end
 	end
 --}}}
 
 --{{{ Paste to (pastefile) or pastebin
 function paste (pastefile)
-  bufcon = selection()
-  pastefile = pastefile or pastebin
-  file = io.open(pastefile, "a")
+  local bufcon = selection()
+  local pastefile = pastefile or pastebin
+  local file = io.open(pastefile, "a")
   file:write(bufcon)
   file:close()
   infobox.text = "wrote X buffer content to " .. pastefile
@@ -410,7 +418,7 @@ globalkeys = awful.util.table.join(
     awful.key({ modkey, "Control" }, "x",           shifty.delete),
     awful.key({ modkey, "Shift"   }, "o",      function() shifty.set(awful.tag.selected(mouse.screen), { screen = awful.util.cycle(screen.count() , mouse.screen + 1) }) end),
 
-	-- devtodo, modal bindings
+	--{{{ devtodo, modal bindings
 	awful.key({ modkey,           }, "t", function () 
 		keybind.push({
 			keybind.key({}, "Escape", "cancel", function ()
@@ -447,10 +455,11 @@ globalkeys = awful.util.table.join(
 		keybind.pop()
 		end),
 
-	}, "::devtodo::'")
+	}, "::devtodo::")
 	end),
+	--}}}
 
-	-- mpd, modal bindings
+	--{{{ mpd, modal bindings
 	awful.key({ modkey,         }, "m", function ()
 		keybind.push({
 			keybind.key({}, "Escape", "cancel", function ()
@@ -485,16 +494,17 @@ globalkeys = awful.util.table.join(
 
 		}, "::mpd::")
 	end),
+	--}}}
 
-	-- Info, modal bindings
+	--{{{ Info, modal bindings
 	awful.key({ modkey,         }, "i", function ()
 		keybind.push({
 			keybind.key({}, "Escape", "cancel", function ()
 				keybind.pop()
 			end),
 			keybind.key({}, "w", "show weather", function ()
-				naughty.notify{ position = "top_right", title = "weather in upplands väsby",
-				text = get_weather(), timeout = 10 }
+				naughty.notify{ position = "top_right", title = "::weather::",
+				text = get_weather(1), timeout = 10 }
 				keybind.pop()
 			end),
 			keybind.key({}, "d", "disk info", function ()
@@ -504,12 +514,12 @@ globalkeys = awful.util.table.join(
 			end),
 		keybind.key({}, "p", "processes", function ()
 				naughty.notify{ position = "top_right", title = "processes",
-				text = awful.util.pread("ps hux"), timeout = 10 }
+				text = awful.util.pread("ps hux"), timeout = 15 }
 				keybind.pop()
 			end),
 		}, "::info::" )
 	end),
-
+	--}}}
     -- switch layouts on the 2:www tag
     awful.key({ modkey,           }, "y", function () awful.layout.inc(wwwlayouts,  1) end),
 
@@ -536,12 +546,8 @@ globalkeys = awful.util.table.join(
     awful.key({ modkey,           }, "Scroll_Lock", function () awful.util.spawn(locker) end),
     awful.key({ modkey,           }, "F12", awesome.quit),
     awful.key({ modkey,           }, "F11", awesome.restart),
-    -- devtodo
-    --awful.key({ modkey,           }, "t", function() show_todo() end),
-    -- Start a new vim window
-	--awful.key({modkey,  "Mod1"    }, "e", function () awful.util.spawn(terminal .. " -title '- VIM' -e " .. editor) end),
+
     -- MPD related
-    awful.key({ modkey, "Mod1"    }, "p", function () naughty.notify{ icon = "/home/dunz0r/gfx/def-cover.png", icon_size = 32 , text = get_playlist() } end),
     awful.key({ modkey, "Shift"   }, ",", function () mpc:previous() ; mpdbox.text = get_mpd() end),
     awful.key({ modkey,           }, "9", function () mpc:toggle_play() ; mpdbox.text = get_mpd() end),
     awful.key({ modkey,           }, "8", function () mpc:stop() ; mpdbox.text = get_mpd() end),
@@ -693,12 +699,18 @@ end)
 
 boxtimer = timer { timeout = 5 }
 boxtimer:add_signal("timeout", function()
-	infobox.text = get_load_temp("THRM")
-	mpdbox.text = get_mpd()
+		infobox.text = get_load_temp("THRM")
+		mpdbox.text = get_mpd()
 	end)
 boxtimer:start()
-mpdbox.text = get_mpd()
+weathertimer = timer { timeout = 880 }
+weathertimer:add_signal("timeout", function()
+		get_weather(0)
+	end)
 
 client.add_signal("focus", function(c) c.border_color = beautiful.border_focus end)
 client.add_signal("unfocus", function(c) c.border_color = beautiful.border_normal end)
+-- stuff to do so we don't have to wait for boxes and the likes to update
+get_weather(0)
+mpdbox.text = get_mpd()
 -- }}}
