@@ -254,7 +254,7 @@ end
 	function album_art()
 		local stats = mpc:send("status")
 		local zstats = mpc:send("playlistid " .. stats.songid)
-		art = musicdir .. string.match(zstats.file, ".*/") .. "^.*jpg$"
+		art = musicdir .. string.match(zstats.file, ".*/") .. "cover.jpg"
 		return art
 	end
 --}}}
@@ -268,9 +268,9 @@ function get_playlist ()
 		do
 		zstats = mpc:send("playlistinfo " .. i)
 		if zstats.pos == stats.song then
-			list = list .. "<span color='#FF0000'> " .. zstats.pos .. ". " .. awful.util.escape((zstats.artist or "NA") .. " - " .. (zstats.title or zstats.file)) .. "</span>\n"
+			list = list .. "<span color='" .. beautiful.fg_focus .. "'>" .. zstats.pos .. ". " .. awful.util.escape((zstats.artist or "NA") .. " - " .. (zstats.title or zstats.file)) .. "</span>\n"
 		else
-			list = list .. " " .. zstats.pos .. ". " .. awful.util.escape((zstats.artist or "NA") .. " - " .. (zstats.title or zstats.file) ) .. "\n"
+			list = list .. zstats.pos .. ". " .. awful.util.escape((zstats.artist or "NA") .. " - " .. (zstats.title or zstats.file) ) .. "\n"
 		end
 	end
     return list
@@ -350,6 +350,13 @@ end
     end
 --}}}
 
+--{{{ Shows the weather
+	function get_weather()
+		local weather = awful.util.pread(";wget -q -O - http://www.accuweather.com/m/en-us/EUR/SE/SW015/Upplands-Vasby/Forecast.aspx | sed -n '/Now/,/More Forecasts/p' | sed 's/<[^>]*>//g; s/^ [ ]*//g; s/&copy;/(c) /g; s/&amp;/and/;s/&deg;//g;s/&nbsp;//g;s/Details//g;s/|//g;s/Hourly//g;s/More Forecasts//'|uniq -u")
+		return weather
+	end
+--}}}
+
 --{{{ Paste to (pastefile) or pastebin
 function paste (pastefile)
   bufcon = selection()
@@ -404,7 +411,6 @@ globalkeys = awful.util.table.join(
     awful.key({ modkey, "Shift"   }, "o",      function() shifty.set(awful.tag.selected(mouse.screen), { screen = awful.util.cycle(screen.count() , mouse.screen + 1) }) end),
 
 	-- devtodo, modal bindings
-	
 	awful.key({ modkey,           }, "t", function () 
 		keybind.push({
 			keybind.key({}, "Escape", "cancel", function ()
@@ -441,7 +447,7 @@ globalkeys = awful.util.table.join(
 		keybind.pop()
 		end),
 
-	}, "devtodo")
+	}, "::devtodo::'")
 	end),
 
 	-- mpd, modal bindings
@@ -450,21 +456,60 @@ globalkeys = awful.util.table.join(
 			keybind.key({}, "Escape", "cancel", function ()
 				keybind.pop()
 			end),
-			keybind.key({}, "p", "show playlist", function ()
-				naughty.notify{ position = "bottom_right", title = get_mpd(), icon = album_art(), icon_size= 128, text = get_playlist() }
+			keybind.key({}, "p", "playlist", function ()
+				naughty.notify{ position = "bottom_right", title = get_mpd(), icon = album_art(), icon_size= 128,
+				text = get_playlist(), timeout = 8 }
 				keybind.pop()
 			end),
 			keybind.key({}, "l", "next track" , function ()
 				mpc:next() ; mpdbox.text = get_mpd()
 				keybind.pop()
 			end),
+			keybind.key({}, "x", "toggle play" , function ()
+				mpc:toggle_play() ; mpdbox.text = get_mpd()
+				keybind.pop()
+			end),
+			keybind.key({}, "z", "toggle random" , function ()
+				mpc:toggle_random()
+				keybind.pop()
+			end),
+			keybind.key({}, "r", "toggle repeat" , function ()
+				mpc:toggle_repeat()
+				keybind.pop()
+			end),
+
 		keybind.key({}, "h", "previous track" , function ()
 				mpc:previous() ; mpdbox.text = get_mpd()
 				keybind.pop()
 			end),
 
-		}, "mpd")
+		}, "::mpd::")
 	end),
+
+	-- Info, modal bindings
+	awful.key({ modkey,         }, "i", function ()
+		keybind.push({
+			keybind.key({}, "Escape", "cancel", function ()
+				keybind.pop()
+			end),
+			keybind.key({}, "w", "show weather", function ()
+				naughty.notify{ position = "top_right", title = "weather in upplands väsby",
+				text = get_weather(), timeout = 10 }
+				keybind.pop()
+			end),
+			keybind.key({}, "d", "disk info", function ()
+				naughty.notify{ position = "top_right", title = "disks",
+				text = awful.util.pread("df -h|sed '/none.*$/d'"), timeout = 10 }
+				keybind.pop()
+			end),
+		keybind.key({}, "p", "processes", function ()
+				naughty.notify{ position = "top_right", title = "processes",
+				text = awful.util.pread("ps hux"), timeout = 10 }
+				keybind.pop()
+			end),
+		}, "::info::" )
+	end),
+
     -- switch layouts on the 2:www tag
     awful.key({ modkey,           }, "y", function () awful.layout.inc(wwwlayouts,  1) end),
 
