@@ -24,6 +24,7 @@
 		locker = "vlock -n"
 		browser = "uzbl-browser"
 		musicdir = "/home/dunz0r/warez/music/"
+		weatherurl = "http://www.accuweather.com/m/en-us/EUR/SE/SW015/Upplands-Vasby/Forecast.aspx"
 		-- where to paste
 		pastebin = os.getenv("HOME") .. "/.pastebin"
 		-- Default modkey.
@@ -79,7 +80,7 @@
 		shifty.config.tags = {
 		   ["1:irc"] = { position = 1, screen = 2, spawn = "urxvtc -tn xterm -name SSH -title '::irssi::' -e ssh -C dunz0r@10.0.0.1 -t screen -t xterm -D -RR", },
 		   ["2:www"] = { solitary = true, position = 2, max_clients = 5,
-						 exclusive = false, layout = awful.layout.suit.max, nopopup = true, spawn = "uzbl-browser",    },
+						 exclusive = false, layout = awful.layout.suit.max, nopopup = true, spawn = browser,    },
 		  ["3:term"] = { persist = true, position = 3, },
 		  ["5:ncmpcpp"] = { nopopup = true, persist = false, position = 5, screen = 2, spawn = "urxvtc -name '::ncmpcpp::' -title '::ncmpcpp::' -e ncmpcpp" },
 		  ["6:code"] = { spawn = terminal .. " -title '- VIM' -e " .. editor, nopopup = false, position = 6, layout = awful.layout.suit.max,        },
@@ -357,9 +358,9 @@ end
 		local fp = io.open("/tmp/.weather")
 		local forecast = fp:read("*a")
 		fp:close()
-		return "<span color='" .. beautiful.fg_focus .. "'>" .. "weather for upplands väsby</span>\n"  .. forecast
+		return "<span color='" .. beautiful.fg_focus .. "'>weather for upplands väsby</span>\n"  .. forecast
 	else
-		os.execute("wget -q -O - http://www.accuweather.com/m/en-us/EUR/SE/SW015/Upplands-Vasby/Forecast.aspx | sed -n '/Now/,/More Forecasts/p' | sed 's/<[^>]*>//g; s/^ [ ]*//g; s/&copy;/(c) /g; s/&amp;/and/;s/&deg;//g;s/&nbsp;//g;s/Details//g;s/|//g;s/Hourly//g;s/More Forecasts//'|uniq -u > /tmp/.weather &")
+		os.execute("wget -q -O - " .. weatherurl .. " | sed -n '/Now/,/More Forecasts/p' | sed 's/<[^>]*>//g; s/^ [ ]*//g; s/&copy;/(c) /g; s/&amp;/and/;s/&deg;//g;s/&nbsp;//g;s/Details//g;s/|//g;s/Hourly//g;s/More Forecasts//'|uniq -u > /tmp/.weather &")
 		return ""
 	end
 	end
@@ -393,6 +394,31 @@ function uzbl_prompt(prompt, text, socket, command)
         assert(c:send("uri google.com\n"))
     -- end
    --end)
+end
+--}}}
+
+--{{{ Find client
+function clientfind (properties)
+   local clients = client.get()
+   local rv = nil
+   for i, c in pairs(clients) do
+      if match(properties, c) then
+        rv = c
+      end
+   end
+   return rv
+end
+
+--}}}
+
+--{{{ Returns true if all pairs in table1 are present in table2
+function match (table1, table2)
+   for k, v in pairs(table1) do
+      if table2[k] ~= v then
+         return false
+      end
+   end
+   return true
 end
 --}}}
 
