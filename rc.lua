@@ -256,7 +256,7 @@ end
 		local stats = mpc:send("status")
 		local zstats = mpc:send("playlistid " .. stats.songid)
 		art = awful.util.pread("find " .. musicdir .. string.match(zstats.file, ".*/") .. " -regextype posix-egrep -iregex '.+(png|jpg)' | head -1")
-		return art
+		return string.gsub(art,"\n","")
 	end
 --}}}
 
