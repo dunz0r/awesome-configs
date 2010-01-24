@@ -78,7 +78,7 @@
 		  nopopup = true
 		}
 		shifty.config.tags = {
-		   ["1:irc"] = { position = 1, screen = 2, spawn = "urxvtc -tn xterm -name SSH -title '::irssi::' -e ssh -C dunz0r@10.0.0.1 -t screen -t xterm -D -RR", },
+		   ["1:irc"] = { position = 1, screen = 2, spawn = "urxvtc -tn xterm -name SSH -title '::irssi::' -e ssh -C -X dunz0r@10.0.0.1 -t screen -t xterm -D -RR", },
 		   ["2:www"] = { solitary = true, position = 2, max_clients = 5,
 						 exclusive = false, layout = awful.layout.suit.max, nopopup = true, spawn = browser,    },
 		  ["3:term"] = { persist = true, position = 3, },
@@ -255,7 +255,7 @@ end
 	function album_art()
 		local stats = mpc:send("status")
 		local zstats = mpc:send("playlistid " .. stats.songid)
-		art = musicdir .. string.match(zstats.file, ".*/") .. "cover.jpg"
+		art = awful.util.pread("find " .. musicdir .. string.match(zstats.file, ".*/") .. " -regextype posix-egrep -iregex '.+(png|jpg)' | head -1")
 		return art
 	end
 --}}}
@@ -397,6 +397,14 @@ function uzbl_prompt(prompt, text, socket, command)
 end
 --}}}
 
+--{{{ Finds string in command
+	function commandfind (command, string)
+		local cmd = awful.util.pread(command)
+		local result = string.match(cmd,string)
+		return result
+	end
+--}}}
+
 --{{{ Find client
 function clientfind (properties)
    local clients = client.get()
@@ -443,6 +451,7 @@ globalkeys = awful.util.table.join(
     awful.key({ modkey,           }, "c",           shifty.rename),
     awful.key({ modkey, "Control" }, "x",           shifty.delete),
     awful.key({ modkey, "Shift"   }, "o",      function() shifty.set(awful.tag.selected(mouse.screen), { screen = awful.util.cycle(screen.count() , mouse.screen + 1) }) end),
+    awful.key({ modkey,           }, "b",      function () naughty.notify({text = album_art(),icon = album_art()})end),
 
 	--{{{ devtodo, modal bindings
 	awful.key({ modkey,           }, "t", function () 
