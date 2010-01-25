@@ -255,7 +255,8 @@ end
 	function album_art()
 		local stats = mpc:send("status")
 		local zstats = mpc:send("playlistid " .. stats.songid)
-		art = awful.util.pread("find " .. musicdir .. string.match(zstats.file, ".*/") .. " -regextype posix-egrep -iregex '.+(png|jpg)' | head -1")
+		art = awful.util.pread("find " .. musicdir .. string.match(zstats.file, ".*/") .. " -regextype posix-egrep -iregex '.+(cover|front|albumart|folder|).*(png|jpe?g|gif)' | head -1")
+
 		return string.gsub(art,"\n","")
 	end
 --}}}
