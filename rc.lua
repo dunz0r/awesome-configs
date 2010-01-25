@@ -22,7 +22,7 @@
 		editor = os.getenv("EDITOR") or "vim"
 		editor_cmd = terminal .. " -e " .. editor
 		locker = "vlock -n"
-		browser = "uzbl-browser"
+		browser = "uzbl-browser&"
 		musicdir = "/home/dunz0r/warez/music/"
 		weatherurl = "http://www.accuweather.com/m/en-us/EUR/SE/SW015/Upplands-Vasby/Forecast.aspx"
 		-- where to paste
@@ -255,7 +255,7 @@ end
 	function album_art()
 		local stats = mpc:send("status")
 		local zstats = mpc:send("playlistid " .. stats.songid)
-		art = awful.util.pread("find " .. musicdir .. string.match(zstats.file, ".*/") .. " -regextype posix-egrep -iregex '.+(cover|front|albumart|folder|).*(png|jpe?g|gif)' | head -1")
+		art = awful.util.pread("find '" .. musicdir .. awful.util.escape(string.match(zstats.file, ".*/")) .. "' -regextype posix-egrep -iregex '.*(cover|front|albumart|folder).*(png|jpg|gif)' | head -1")
 
 		return string.gsub(art,"\n","")
 	end
