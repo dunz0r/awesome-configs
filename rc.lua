@@ -59,24 +59,29 @@
 		-- }}}
 
 		-- {{{ Shifty
+		-- {{{ Config defaults
 		shifty.config.defaults = {
-		  layout = awful.layout.suit.tile.top, 
-		  floatBars = true,
+		layout = awful.layout.suit.tile.top, 
+		floatBars = true,
 		 run = function(tag)
-			 naughty.notify({ text = "Shifty Created "..
+		 naughty.notify({ text = "Shifty Created "..
 				 (awful.tag.getproperty(tag,"position") or shifty.tag2index(mouse.screen,tag)).." : "..
 				 (tag.name or "foo")
 				})
-			end,
-		  guess_name = true,
-		  persist = false,
-		  exclusive = true,
-		  guess_position = true,
-		  remember_index = true,
-		  ncol = 1,
-		  mwfact = 0.5,
-		  nopopup = true
+		end,
+		guess_name = true,
+		persist = false,
+		exclusive = true,
+		guess_position = true,
+		remember_index = true,
+		ncol = 1,
+		floatBars=true,
+		mwfact = 0.5,
+		nopopup = true
 		}
+		--}}}
+		
+		-- {{{ Tags
 		shifty.config.tags = {
 		   ["1:irc"] = { position = 1, screen = 2, spawn = "urxvtc -tn xterm -name SSH -title '::irssi::' -e ssh -C -X dunz0r@10.0.0.1 -t screen -t xterm -D -RR", },
 		   ["2:www"] = { solitary = true, position = 2, max_clients = 5,
@@ -95,7 +100,9 @@
 			  [":img"] = { layout = awful.layout.suit.max.fullscreen, screen = 1, nopopup = false, spawn = "feh -F /home/dunz0r/gfx/*", },
 			  ["cssh"] = { layout = awful.layout.suit.float, screen = 1, nopopup = false, exclusive = false, }
 		}
-
+		--}}}
+		
+		-- {{{ Apps
 		shifty.config.apps = {
 			{ match = { "::irssi.*",                    }, tag = "1:irc", },
 			{ match = {"Shiretoko.*", "Vimperator.*", "uzbl"       }, tag = "2:www" },
@@ -118,15 +125,12 @@
 			{ match = {"skype.*"                          }, tag = "9:skype",                       },
 			{ match = { "mc -.+"                       }, tag = ":fs:",                           },
 			{ match = { "" }, honorsizehints= true,
-					 buttons = {
-						 button({ }, 1, function (c) client.focus = c; c:raise() end),
-						 button({ modkey }, 1, function (c) awful.mouse.client.move() end),
-						 button({ modkey }, 3, awful.mouse.client.resize ), }, },
-
+				 buttons = {
+				 awful.button({ }, 1, function (c) client.focus = c; c:raise() end),
+				 awful.button({ modkey }, 1, function (c) awful.mouse.client.move() end),
+				 awful.button({ modkey }, 3, awful.mouse.client.resize ), }, },
 			   }
-
-
-
+			-- }}}
 		-- }}}
 
 		-- {{{ Wibox
@@ -255,7 +259,7 @@ end
 	function album_art()
 		local stats = mpc:send("status")
 		local zstats = mpc:send("playlistid " .. stats.songid)
-		art = awful.util.pread("find '" .. musicdir .. awful.util.escape(string.match(zstats.file, ".*/")) .. "' -regextype posix-egrep -iregex '.*(cover|front|albumart|folder).*(png|jpg|gif)' | head -1")
+		art = awful.util.pread("find '" .. musicdir .. awful.util.escape(string.match(zstats.file, ".*/")) .. "' -regextype posix-egrep -iregex '.*(cover|front|albumart|folder).*(png|jpe?g|gif)' | head -1")
 
 		return string.gsub(art,"\n","")
 	end
@@ -444,15 +448,14 @@ root.buttons(awful.util.table.join(
 
 -- {{{ Key binding
 globalkeys = awful.util.table.join(
-    awful.key({ modkey,           }, "Tab",   awful.tag.viewprev       ),
+    awful.key({ modkey,           }, "Tab",  awful.tag.viewprev       ),
     awful.key({ modkey, "Shift"   }, "Tab",  awful.tag.viewnext       ),
     awful.key({ modkey,           }, "Escape", awful.tag.history.restore),
-    awful.key({ modkey            }, "n",           function() shifty.add({ rel_index = 1 }) end),
-    awful.key({ modkey, "Control" }, "n",           function() shifty.add({ rel_index = 1, nopopup = true }) end),
-    awful.key({ modkey,           }, "c",           shifty.rename),
-    awful.key({ modkey, "Control" }, "x",           shifty.delete),
+    awful.key({ modkey            }, "n",      function() shifty.add({ rel_index = 1 }) end),
+    awful.key({ modkey, "Control" }, "n",      function() shifty.add({ rel_index = 1, nopopup = true }) end),
+    awful.key({ modkey,           }, "c",      shifty.rename),
+    awful.key({ modkey, "Shift"   }, "x",      shifty.del),
     awful.key({ modkey, "Shift"   }, "o",      function() shifty.set(awful.tag.selected(mouse.screen), { screen = awful.util.cycle(screen.count() , mouse.screen + 1) }) end),
-    awful.key({ modkey,           }, "b",      function () naughty.notify({text = album_art(),icon = album_art()})end),
 
 	--{{{ devtodo, modal bindings
 	awful.key({ modkey,           }, "t", function () 
@@ -685,7 +688,7 @@ shifty.config.clientkeys = clientkeys
 --}}}
 shifty.taglist = mytaglist
 shifty.init()
--- {{{ Rules
+--[[ {{{ Rules
 awful.rules.rules = {
     -- All clients will match this rule.
     { rule = { },
@@ -705,6 +708,7 @@ awful.rules.rules = {
     --   properties = { tag = tags[1][2] } },
 }
 -- }}}
+-- ]]
 
 -- {{{ Signals
 -- Signal function to execute when a new client appears.
