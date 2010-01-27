@@ -1,32 +1,36 @@
-		-- Standard awesome library
-		require("awful")
-		require("awful.autofocus")
-		require("awful.rules")
-		-- Theme handling library
-		require("beautiful")
-		-- Notification library
-		require("naughty")
-		-- Dynamic Tagging
-		require("lib/shifty")
-		-- kAwouru's MPD library
-		require("lib/mpd") ; mpc = mpd.new()
-		-- Keybind libraray by ierton
-		require("lib/keybind")
-		-- {{{ Variable definitions
-		-- Themes define colours, icons, and wallpapers
-		theme_path = os.getenv("HOME") .. "/.config/awesome/theme.lua"
-		beautiful.init(theme_path)
+	-- Standard awesome library
+	require("awful")
+	require("awful.autofocus")
+	require("awful.rules")
+	-- Theme handling library
+	require("beautiful")
+	-- Notification library
+	require("naughty")
+	-- Dynamic Tagging
+	require("lib/shifty")
+	-- kAwouru's MPD library
+	require("lib/mpd") ; mpc = mpd.new()
+	-- Keybind libraray by ierton
+	require("lib/keybind")
+	-- {{{ Variable definitions
+	-- Themes define colours, icons, and wallpapers
+	theme_path = os.getenv("HOME") .. "/.config/awesome/theme.lua"
+	beautiful.init(theme_path)
 
-		-- This is used later as the default terminal and editor to run.
-		terminal = "urxvtc"
-		editor = os.getenv("EDITOR") or "vim"
-		editor_cmd = terminal .. " -e " .. editor
-		locker = "vlock -n"
-		browser = "uzbl-browser&"
-		musicdir = "/home/dunz0r/warez/music/"
-		weatherurl = "http://www.accuweather.com/m/en-us/EUR/SE/SW015/Upplands-Vasby/Forecast.aspx"
-		-- where to paste
-		pastebin = os.getenv("HOME") .. "/.pastebin"
+	-- This is used later as the default terminal and editor to run.
+	terminal = "urxvtc"
+	editor = os.getenv("EDITOR") or "vim"
+	editor_cmd = terminal .. " -e " .. editor
+	locker = "vlock -n"
+	browser = "uzbl-browser&"
+	musicdir = "/home/dunz0r/warez/music/"
+	weatherurl = "http://www.accuweather.com/m/en-us/EUR/SE/SW015/Upplands-Vasby/Forecast.aspx"
+	-- where to paste
+	pastebin = os.getenv("HOME") .. "/.pastebin"
+	-- menu bindings
+	awful.menu.menu_keys.up = { "j"}
+	awful.menu.menu_keys.down = { "k"}
+	awful.menu.menu_keys.exec = { "g"}
 		-- Default modkey.
 		-- Usually, Mod4 is the key with a logo between Control and Alt.
 		-- If you do not like this or do not have such a key,
@@ -34,34 +38,34 @@
 		-- However, you can use another modifier like Mod1, but it may interact with others.
 		modkey = "Mod4"
 
-		-- Table of layouts to cover with awful.layout.inc, order matters.
-		layouts =
-		{
-			awful.layout.suit.tile,
-			awful.layout.suit.tile.left,
-			awful.layout.suit.tile.bottom,
-			awful.layout.suit.tile.top,
-			awful.layout.suit.fair,
-			awful.layout.suit.fair.horizontal,
-			awful.layout.suit.spiral,
-			awful.layout.suit.spiral.dwindle,
-			awful.layout.suit.max,
-			awful.layout.suit.max.fullscreen,
-			awful.layout.suit.magnifier,
-			awful.layout.suit.floating
-		}
-		-- Table of layouts to use on the 2:www tag
-		wwwlayouts = 
-		{
-			awful.layout.suit.max,
-			awful.layout.suit.fair
-		}
-		-- }}}
+	-- Table of layouts to cover with awful.layout.inc, order matters.
+	layouts =
+	{
+		awful.layout.suit.tile,
+		awful.layout.suit.tile.left,
+		awful.layout.suit.tile.bottom,
+		awful.layout.suit.tile.top,
+		awful.layout.suit.fair,
+		awful.layout.suit.fair.horizontal,
+		awful.layout.suit.spiral,
+		awful.layout.suit.spiral.dwindle,
+		awful.layout.suit.max,
+		awful.layout.suit.max.fullscreen,
+		awful.layout.suit.magnifier,
+		awful.layout.suit.floating
+	}
+	-- Table of layouts to use on the 2:www tag
+	wwwlayouts = 
+	{
+		awful.layout.suit.max,
+		awful.layout.suit.fair
+	}
+	-- }}}
 
 		-- {{{ Shifty
 		-- {{{ Config defaults
 		shifty.config.defaults = {
-		layout = awful.layout.suit.tile.top, 
+		layout = awful.layout.suit.tile,
 		floatBars = true,
 		 run = function(tag)
 		 naughty.notify({ text = "Shifty Created "..
@@ -169,7 +173,7 @@
 								  instance:hide()
 								  instance = nil
 								  else
-								  instance = awful.menu.clients({ width=250 })
+								  instance = awful.menu.clients({ width=250 }, true)
 								  end
 							  end),
 					 awful.button({ }, 4, function ()
@@ -259,7 +263,7 @@ end
 	function album_art()
 		local stats = mpc:send("status")
 		local zstats = mpc:send("playlistid " .. stats.songid)
-		art = awful.util.pread("find '" .. musicdir .. awful.util.escape(string.match(zstats.file, ".*/")) .. "' -regextype posix-egrep -iregex '.*(cover|front|albumart|folder).*(png|jpe?g|gif)' | head -1")
+		art = awful.util.pread("find '" .. musicdir .. awful.util.escape(string.match(zstats.file, ".*/")) .. "' -regextype posix-egrep -iregex '.*(cover|front|albumart|outside|folder).*(png|jpe?g|gif)' | head -1")
 
 		return string.gsub(art,"\n","")
 	end
@@ -513,6 +517,18 @@ globalkeys = awful.util.table.join(
 				mpc:next() ; mpdbox.text = get_mpd()
 				keybind.pop()
 			end),
+			keybind.key({}, "h", "previous track" , function ()
+				mpc:previous() ; mpdbox.text = get_mpd()
+				keybind.pop()
+			end),
+			keybind.key({}, "k", "volume up" , function ()
+				mpc:volume_up(5) ; mpdbox.text = get_mpd()
+				keybind.pop()
+			end),
+			keybind.key({}, "j", "volume down" , function ()
+				mpc:volume_down(5) ; mpdbox.text = get_mpd()
+				keybind.pop()
+			end),
 			keybind.key({}, "x", "toggle play" , function ()
 				mpc:toggle_play() ; mpdbox.text = get_mpd()
 				keybind.pop()
@@ -523,11 +539,6 @@ globalkeys = awful.util.table.join(
 			end),
 			keybind.key({}, "r", "toggle repeat" , function ()
 				mpc:toggle_repeat()
-				keybind.pop()
-			end),
-
-		keybind.key({}, "h", "previous track" , function ()
-				mpc:previous() ; mpdbox.text = get_mpd()
 				keybind.pop()
 			end),
 
@@ -561,7 +572,7 @@ globalkeys = awful.util.table.join(
 	--}}}
     -- switch layouts on the 2:www tag
     awful.key({ modkey,           }, "y", function () awful.layout.inc(wwwlayouts,  1) end),
-
+	-- focus switching
     awful.key({ modkey,           }, "j",
         function ()
             awful.client.focus.byidx( 1)
@@ -572,7 +583,8 @@ globalkeys = awful.util.table.join(
             awful.client.focus.byidx(-1)
             if client.focus then client.focus:raise() end
         end),
-
+	-- this will bring up a menu of all clients and let you choose one
+	awful.key({ modkey,           },"Escape", function () awful.menu.clients({ width=250 }, true) end),
     -- Layout manipulation
     awful.key({ modkey, "Shift"   }, "j", function () awful.client.swap.byidx(  1)    end),
     awful.key({ modkey, "Shift"   }, "k", function () awful.client.swap.byidx( -1)    end),
