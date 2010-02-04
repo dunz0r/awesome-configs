@@ -21,15 +21,15 @@
 	terminal = "urxvtc"
 	editor = os.getenv("EDITOR") or "vim"
 	editor_cmd = terminal .. " -e " .. editor
-	locker = "vlock -n"
-	browser = "uzbl-browser&"
+	locker = "xlock"
+	browser = "exec uzbl-browser"
 	musicdir = "/home/dunz0r/warez/music/"
 	weatherurl = "http://www.accuweather.com/m/en-us/EUR/SE/SW015/Upplands-Vasby/Forecast.aspx"
 	-- where to paste
 	pastebin = os.getenv("HOME") .. "/.pastebin"
 	-- menu bindings
-	awful.menu.menu_keys.up = { "j"}
-	awful.menu.menu_keys.down = { "k"}
+	awful.menu.menu_keys.up = { "k"}
+	awful.menu.menu_keys.down = { "j"}
 	awful.menu.menu_keys.exec = { "g"}
 		-- Default modkey.
 		-- Usually, Mod4 is the key with a logo between Control and Alt.
@@ -67,8 +67,8 @@
 		shifty.config.defaults = {
 		layout = awful.layout.suit.tile,
 		floatBars = true,
-		 run = function(tag)
-		 naughty.notify({ text = "Shifty Created "..
+		run = function(tag)
+		naughty.notify({ text = "Shifty Created "..
 				 (awful.tag.getproperty(tag,"position") or shifty.tag2index(mouse.screen,tag)).." : "..
 				 (tag.name or "foo")
 				})
@@ -87,9 +87,9 @@
 		
 		-- {{{ Tags
 		shifty.config.tags = {
-		   ["1:irc"] = { position = 1, screen = 2, spawn = "urxvtc -tn xterm -name SSH -title '::irssi::' -e ssh -C -X dunz0r@10.0.0.1 -t screen -t xterm -D -RR", },
+		   ["1:irc"] = { position = 1, screen = 2, spawn = "urxvtc -name SSH -title '::irssi::' -e ssh -C dunz0r@10.0.0.1 -t screen -D -RR -U", },
 		   ["2:www"] = { solitary = true, position = 2, max_clients = 5,
-						 exclusive = false, layout = awful.layout.suit.max, nopopup = true, spawn = browser,    },
+						 exclusive = false, layout = awful.layout.suit.max, nopopup = true, persist = false, spawn = browser },
 		  ["3:term"] = { persist = true, position = 3, },
 		  ["5:ncmpcpp"] = { nopopup = true, persist = false, position = 5, screen = 2, spawn = "urxvtc -name '::ncmpcpp::' -title '::ncmpcpp::' -e ncmpcpp" },
 		  ["6:code"] = { spawn = terminal .. " -title '- VIM' -e " .. editor, nopopup = false, position = 6, layout = awful.layout.suit.max,        },
@@ -97,10 +97,10 @@
 			[":gimp"] = { spawn = "gimp", layout = awful.layout.suit.max.fullscreen, sweep_delay = 2, screen = 1,  },
 			[":gimp-tool"] = { layout = "tile", sweep_delay = 2, screen = 2,  },
 			  [":fs"] = { rel_index = 1, exclusive = false                                           },
-			  [":Wine"] = { rel_index = 1, layout = awful.layout.suit.float, screen = 1, nopopup = true, },
+			  [":Wine"] = { rel_index = -1, layout = awful.layout.suit.float, screen = 1, nopopup = true, },
 			  [":video"] = { nopopup = false, rel_index= 1, layout = awful.layout.suit.float, screen = 1, },
 			  ["9:skype"] = { layout = awful.layout.suit.tile, screen = 2, mwfact = 0.6, position = 9, spawn = "skype-pulse", },
-			  ["8:PDF"] = { layout = awful.layout.suit.fair, position = 8, nopopup = false },
+			  ["8:PDF"] = { layout = awful.layout.suit.max.fullscreen, position = 8, nopopup = false },
 			  [":img"] = { layout = awful.layout.suit.max.fullscreen, screen = 1, nopopup = false, spawn = "feh -F /home/dunz0r/gfx/*", },
 			  ["cssh"] = { layout = awful.layout.suit.float, screen = 1, nopopup = false, exclusive = false, }
 		}
@@ -113,21 +113,20 @@
 			{ match = {"urxvt"                          }, tag = "3:term",     },
 			{ match = {"term:.*"                        }, tag = "3:term",     },
 			{ match = {".* - VIM"                       }, tag = "6:code",     },
-			{ match = { "zenity"			    }, intrusive = true, float = true},
+			{ match = { "zenity"                        }, intrusive = true, float = true},
 			{ match = {"newsbeuter:.*"                  }, tag = "7:newsbeuter",},
 			{ match = {"::ncmpcpp.*",                   }, tag = "5:ncmpcpp",  },
 			{ match = {"MPlayer.*",                     }, tag = ":video", },
 			{ match = {"MilkyTracker.*","Sound.racker.*"}, tag = ":TRACKZ", },
-			{ match = {"wine"         }, tag = ":Wine",         nopopup = true, },
+			{ match = {"wine"                           }, tag = ":Wine", nopopup = true, },
 			{ match = {"Deluge","rtorrent"              }, tag = ":p2p",                          },
-			{ match = {"apvlv",                         }, tag = "8:PDF"},
-			{ match = {"Xpdf.*",                        }, tag = "8:PDF"},
-			{ match = {"gimp.toolbox",                 },  master = true , tag = ":gimp-tool" },
-			{ match = {"gimp.dock",                 },  slave = true , tag = ":gimp-tool" },
+			{ match = {"apvlv", "Xpdf", "zathura"       }, tag = "8:PDF"},
+			{ match = {"gimp.toolbox",                  },  master = true , tag = ":gimp-tool" },
+			{ match = {"gimp.dock",                     },  slave = true , tag = ":gimp-tool" },
 			{ match = {"gimp-image-window",             }, master = true, tag = ":gimp" },
 			{ match = {"feh.*"                          }, tag = ":img",                       },
-			{ match = {"skype.*"                          }, tag = "9:skype",                       },
-			{ match = { "mc -.+"                       }, tag = ":fs:",                           },
+			{ match = {"skype.*"                        }, tag = "9:skype",                       },
+			{ match = { "mc -.+"                        }, tag = ":fs:",                           },
 			{ match = { "" }, honorsizehints= true,
 				 buttons = {
 				 awful.button({ }, 1, function (c) client.focus = c; c:raise() end),
@@ -665,6 +664,34 @@ keys[7] = "a"
 keys[8] = "s"
 keys[9] = "d"
 -- Compute the maximum number of digit we need, limited to 9
+for i=1,9 do
+  
+  globalkeys = awful.util.table.join(globalkeys, awful.key({ modkey }, keys[i],
+  function ()
+    local t = awful.tag.viewonly(shifty.getpos(i))
+  end))
+  globalkeys = awful.util.table.join(globalkeys, awful.key({ modkey, "Control" }, keys[i],
+  function ()
+    local t = shifty.getpos(i)
+    t.selected = not t.selected
+  end))
+  globalkeys = awful.util.table.join(globalkeys, awful.key({ modkey, "Mod1" }, keys[i],
+  function ()
+    if client.focus then
+      awful.client.toggletag(shifty.getpos(i))
+    end
+  end))
+  -- move clients to other tags
+  globalkeys = awful.util.table.join(globalkeys, awful.key({ modkey, "Shift" }, keys[i],
+    function ()
+      if client.focus then
+        local t = shifty.getpos(i)
+        awful.client.movetotag(t)
+        awful.tag.viewonly(t)
+      end
+    end))
+end
+--[[ these will be removed as soon as I'm certain the solution works as expected
 for i = 1, 12 do
     globalkeys = awful.util.table.join(globalkeys,
         awful.key({ modkey }, keys[i],
@@ -682,10 +709,10 @@ for i = 1, 12 do
                     if slave then awful.client.setslave(c) end
                 end 
             end
-        )
-    )
+        ),
+		)
 end
-
+--]]
 
 clientbuttons = awful.util.table.join(
     awful.button({ }, 1, function (c) client.focus = c; c:raise() end),
@@ -700,7 +727,7 @@ shifty.config.clientkeys = clientkeys
 --}}}
 shifty.taglist = mytaglist
 shifty.init()
---[[ {{{ Rules
+--{{{ Rules
 awful.rules.rules = {
     -- All clients will match this rule.
     { rule = { },
@@ -720,7 +747,6 @@ awful.rules.rules = {
     --   properties = { tag = tags[1][2] } },
 }
 -- }}}
--- ]]
 
 -- {{{ Signals
 -- Signal function to execute when a new client appears.
