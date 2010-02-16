@@ -9,20 +9,20 @@
 	-- Dynamic Tagging
 	require("lib/shifty")
 	-- kAwouru's MPD library
-	require("lib/mpd") ; mpc = mpd.new()
+	require("lib/mpd") ; mpc = mpd.new({ hostname="10.0.0.4"  })
 	-- Keybind libraray by ierton
 	require("lib/keybind")
 	-- {{{ Variable definitions
 	-- Themes define colours, icons, and wallpapers
 	theme_path = os.getenv("HOME") .. "/.config/awesome/theme.lua"
 	beautiful.init(theme_path)
-
+	
 	-- This is used later as the default terminal and editor to run.
 	terminal = "urxvtc"
 	editor = os.getenv("EDITOR") or "vim"
 	editor_cmd = terminal .. " -e " .. editor
 	locker = "xlock"
-	browser = "exec uzbl-browser"
+	browser = "uzbl-browser&"
 	musicdir = "/home/dunz0r/warez/music/"
 	weatherurl = "http://www.accuweather.com/m/en-us/EUR/SE/SW015/Upplands-Vasby/Forecast.aspx"
 	-- where to paste
@@ -31,6 +31,8 @@
 	awful.menu.menu_keys.up = { "k"}
 	awful.menu.menu_keys.down = { "j"}
 	awful.menu.menu_keys.exec = { "g"}
+	-- what to use as a separator
+	--sep = "<span color='" .. beautiful.bg_focus .. "'>-</span><span color='" .. beatuiful.fg_normal .. "'-</span>"
 		-- Default modkey.
 		-- Usually, Mod4 is the key with a logo between Control and Alt.
 		-- If you do not like this or do not have such a key,
@@ -75,6 +77,7 @@
 		end,
 		guess_name = true,
 		persist = false,
+		leave_kills = false,
 		exclusive = true,
 		guess_position = true,
 		remember_index = true,
@@ -87,15 +90,15 @@
 		
 		-- {{{ Tags
 		shifty.config.tags = {
-		   ["1:irc"] = { position = 1, screen = 2, spawn = "urxvtc -name SSH -title '::irssi::' -e ssh -C dunz0r@10.0.0.1 -t screen -D -RR -U", },
+		   ["1:irc"] = { screen = 2, spawn = terminal .. " -name SSH -title '::irssi::' -e ssh dunz0r@10.0.0.1 -t screen -D -RR -U", },
 		   ["2:www"] = { solitary = true, position = 2, max_clients = 5,
-						 exclusive = false, layout = awful.layout.suit.max, nopopup = true, persist = false, spawn = browser },
+						 exclusive = false, layout = awful.layout.suit.max, nopopup = true, spawn = browser },
 		  ["3:term"] = { persist = true, position = 3, },
 		  ["5:ncmpcpp"] = { nopopup = true, persist = false, position = 5, screen = 2, spawn = "urxvtc -name '::ncmpcpp::' -title '::ncmpcpp::' -e ncmpcpp" },
-		  ["6:code"] = { spawn = terminal .. " -title '- VIM' -e " .. editor, nopopup = false, position = 6, layout = awful.layout.suit.max,        },
+		  ["6:code"] = { spawn = terminal .. " -title '- VIM' -e " .. editor, nopopup = false, position = 6, layout = awful.layout.suit.max },
 			 [":p2p"] = { icon = "/usr/share/pixmaps/p2p.png", icon_only = true, },
 			[":gimp"] = { spawn = "gimp", layout = awful.layout.suit.max.fullscreen, sweep_delay = 2, screen = 1,  },
-			[":gimp-tool"] = { layout = "tile", sweep_delay = 2, screen = 2,  },
+			[":gimp-tool"] = { layout = awful.layout.suit.tile, sweep_delay = 2, screen = 2,  },
 			  [":fs"] = { rel_index = 1, exclusive = false                                           },
 			  [":Wine"] = { rel_index = -1, layout = awful.layout.suit.float, screen = 1, nopopup = true, },
 			  [":video"] = { nopopup = false, rel_index= 1, layout = awful.layout.suit.float, screen = 1, },
@@ -262,7 +265,7 @@ end
 	function album_art()
 		local stats = mpc:send("status")
 		local zstats = mpc:send("playlistid " .. stats.songid)
-		art = awful.util.pread("find '" .. musicdir .. awful.util.escape(string.match(zstats.file, ".*/")) .. "' -regextype posix-egrep -iregex '.*(cover|front|albumart|outside|folder).*(png|jpe?g|gif)' | head -1")
+		art = awful.util.pread("find '" .. musicdir .. awful.util.unescape(string.match(zstats.file, ".*/")) .. "' -regextype posix-egrep -iregex '.*(cover|front|albumart|outside|folder).*(png|jpg|gif)' | head -1")
 
 		return string.gsub(art,"\n","")
 	end
@@ -272,10 +275,19 @@ end
 function get_playlist ()
 	local stats = mpc:send("status")
 	local cur = stats.song
-  local list = ""
-	for i = stats.song-7,stats.song+6
+	local list = ""
+	if tonumber(stats.song) < 10 then
+		min = tonumber(stats.song)
+	else
+		min = 10
+	end
+	for i = stats.song - min,stats.song + 6
 		do
 		zstats = mpc:send("playlistinfo " .. i)
+		if zstats.pos == nil then
+			list = list .. "<big><b>::end::</b></big>"
+			break
+		end
 		if zstats.pos == stats.song then
 			list = list .. "<span color='" .. beautiful.fg_focus .. "'>" .. zstats.pos .. ". " .. awful.util.escape((zstats.artist or "NA") .. " - " .. (zstats.title or zstats.file)) .. "</span>\n"
 		else
@@ -297,7 +309,7 @@ end
 --}}}
 
 --{{{ Show todos
-    function show_todo()
+    function show_todo(graft)
         local todo = awful.util.pread("todo --mono")
         todo = naughty.notify({
             text = "<b><u>devtodo</u></b>\n" .. "<span color='" .. beautiful.fg_focus .. "'>".. string.format(os.date("%a, %d %B %Y") .. "</span>" .. "\n" .. todo),
@@ -557,13 +569,13 @@ globalkeys = awful.util.table.join(
 				keybind.pop()
 			end),
 			keybind.key({}, "d", "disk info", function ()
-				naughty.notify{ position = "top_right", title = "disks",
+				naughty.notify{ position = "top_right", title = "::disks::",
 				text = awful.util.pread("df -h|sed '/none.*$/d'"), timeout = 10 }
 				keybind.pop()
 			end),
 		keybind.key({}, "p", "processes", function ()
-				naughty.notify{ position = "top_right", title = "processes",
-				text = awful.util.pread("ps hux"), timeout = 15 }
+				naughty.notify{ position = "top_right", title = "::processes::",
+				text = awful.util.pread("ps ux"), timeout = 15 }
 				keybind.pop()
 			end),
 		}, "::info::" )
@@ -645,7 +657,7 @@ clientkeys = awful.util.table.join(
     awful.key({ modkey,           }, "o",      awful.client.movetoscreen                        ),
     awful.key({ modkey, "Shift"   }, "r",      function (c) c:redraw()                       end),
     awful.key({ modkey,           }, "n",      function (c) c.minimized = not c.minimized    end),
-    awful.key({ modkey,           }, "m",
+    awful.key({ modkey, "Shift"   }, "m",
         function (c)
             c.maximized_horizontal = not c.maximized_horizontal
             c.maximized_vertical   = not c.maximized_vertical
@@ -741,7 +753,7 @@ awful.rules.rules = {
     { rule = { class = "Unreal Tournament 2004" },
       properties = { floating = true } },
     { rule = { class = "gimp" },
-      properties = { floating = true } },
+      properties = { floating = false } },
     -- Set Firefox to always map on tags number 2 of screen 1.
     -- { rule = { class = "Firefox" },
     --   properties = { tag = tags[1][2] } },
