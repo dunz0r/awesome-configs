@@ -127,6 +127,7 @@
 			{ match = {"gimp.toolbox",                  },  master = true , tag = ":gimp-tool" },
 			{ match = {"gimp.dock",                     },  slave = true , tag = ":gimp-tool" },
 			{ match = {"gimp-image-window",             }, master = true, tag = ":gimp" },
+			{ match = {"gimp",             }, master = true, tag = ":gimp" },
 			{ match = {"feh.*"                          }, tag = ":img",                       },
 			{ match = {"skype.*"                        }, tag = "9:skype",                       },
 			{ match = { "mc -.+"                        }, tag = ":fs:",                           },
@@ -752,8 +753,6 @@ awful.rules.rules = {
       properties = { floating = true } },
     { rule = { class = "Unreal Tournament 2004" },
       properties = { floating = true } },
-    { rule = { class = "gimp" },
-      properties = { floating = false } },
     -- Set Firefox to always map on tags number 2 of screen 1.
     -- { rule = { class = "Firefox" },
     --   properties = { tag = tags[1][2] } },
