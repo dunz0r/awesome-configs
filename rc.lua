@@ -23,6 +23,7 @@
 	editor_cmd = terminal .. " -e " .. editor
 	locker = "xlock"
 	browser = "uzbl-browser&"
+	browser_session = "uzbl_session.sh -n&"
 	musicdir = "/home/dunz0r/warez/music/"
 	weatherurl = "http://www.accuweather.com/m/en-us/EUR/SE/SW015/Upplands-Vasby/Forecast.aspx"
 	-- where to paste
@@ -90,21 +91,23 @@
 		
 		-- {{{ Tags
 		shifty.config.tags = {
-		   ["1:irc"] = { screen = 2, spawn = terminal .. " -name SSH -title '::irssi::' -e ssh dunz0r@10.0.0.1 -t screen -D -RR -U", },
+			   ["1:irc"] = { spawn = terminal .. " -name SSH -title '::irssi::' -e ssh -t dunz0r@10.0.0.1 screen -RD ", position = 1, },
 		   ["2:www"] = { solitary = true, position = 2, max_clients = 5,
-						 exclusive = false, layout = awful.layout.suit.max, nopopup = true, spawn = browser },
+						 exclusive = false, layout = awful.layout.suit.max, nopopup = true, spawn = browser_session },
 		  ["3:term"] = { persist = true, position = 3, },
-		  ["5:ncmpcpp"] = { nopopup = true, persist = false, position = 5, screen = 2, spawn = "urxvtc -name '::ncmpcpp::' -title '::ncmpcpp::' -e ncmpcpp" },
-		  ["6:code"] = { spawn = terminal .. " -title '- VIM' -e " .. editor, nopopup = false, position = 6, layout = awful.layout.suit.max },
+		  ["5:ncmpcpp"] = { nopopup = true, persist = false, position = 5,
+						  spawn = terminal .. " -name '::ncmpcpp::' -title '::ncmpcpp::' -e ncmpcpp" },
+		  ["6:code"] = { spawn = terminal .. " -title '- VIM' -e sh -c 'sleep 0.2s;" .. editor .. "'", nopopup = false, position = 6,
+						  layout = awful.layout.suit.max },
 			 [":p2p"] = { icon = "/usr/share/pixmaps/p2p.png", icon_only = true, },
 			[":gimp"] = { spawn = "gimp", layout = awful.layout.suit.max.fullscreen, sweep_delay = 2, screen = 1,  },
 			[":gimp-tool"] = { layout = awful.layout.suit.tile, sweep_delay = 2, screen = 2,  },
 			  [":fs"] = { rel_index = 1, exclusive = false                                           },
 			  [":Wine"] = { rel_index = -1, layout = awful.layout.suit.float, screen = 1, nopopup = true, },
-			  [":video"] = { nopopup = false, rel_index= 1, layout = awful.layout.suit.float, screen = 1, },
-			  ["9:skype"] = { layout = awful.layout.suit.tile, screen = 2, mwfact = 0.6, position = 9, spawn = "skype-pulse", },
+			  ["7:mutt"] = { position = 7, layout = awful.layout.suit.max, spawn = terminal .. " -title '::mutt::' -e sh -c 'sleep 0.1s;mutt'", nopopup = false, },
+			  ["4:video"] = { nopopup = false, position = 4, layout = awful.layout.suit.float, },
 			  ["8:PDF"] = { layout = awful.layout.suit.max.fullscreen, position = 8, nopopup = false },
-			  [":img"] = { layout = awful.layout.suit.max.fullscreen, screen = 1, nopopup = false, spawn = "feh -F /home/dunz0r/gfx/*", },
+			  ["9:img"] = { position = 9, layout = awful.layout.suit.max.fullscreen, nopopup = false, },
 			  ["cssh"] = { layout = awful.layout.suit.float, screen = 1, nopopup = false, exclusive = false, }
 		}
 		--}}}
@@ -112,8 +115,10 @@
 		-- {{{ Apps
 		shifty.config.apps = {
 			{ match = { "::irssi.*",                    }, tag = "1:irc", },
+			{ match = { "::mutt::.*",                    }, tag = "7:mutt", },
 			{ match = {"Shiretoko.*", "Vimperator.*", "uzbl"       }, tag = "2:www" },
 			{ match = {"urxvt"                          }, tag = "3:term",     },
+			{ match = {"xev"                            }, intrusive = true,     },
 			{ match = {"term:.*"                        }, tag = "3:term",     },
 			{ match = {".* - VIM"                       }, tag = "6:code",     },
 			{ match = { "zenity"                        }, intrusive = true, float = true},
@@ -128,9 +133,10 @@
 			{ match = {"gimp.dock",                     },  slave = true , tag = ":gimp-tool" },
 			{ match = {"gimp-image-window",             }, master = true, tag = ":gimp" },
 			{ match = {"gimp",             }, master = true, tag = ":gimp" },
-			{ match = {"feh.*"                          }, tag = ":img",                       },
-			{ match = {"skype.*"                        }, tag = "9:skype",                       },
-			{ match = { "mc -.+"                        }, tag = ":fs:",                           },
+			{ match = {"feh.*"                          }, tag = ":img",          },
+			{ match = {"skype.*"                        }, tag = "9:skype",       },
+			{ match = {".*Sun Virtualbox"               }, tag = "7:Vbox",        },
+			{ match = { "mc -.+"                        }, tag = ":fs:",          },
 			{ match = { "" }, honorsizehints= true,
 				 buttons = {
 				 awful.button({ }, 1, function (c) client.focus = c; c:raise() end),
@@ -303,7 +309,7 @@ end
 
 	function add_todo (todo)
 		naughty.notify({
-		text = "<b><u>devtodo: </u></b> " .. "<span color='" .. beautiful.fg_focus .. "'>" .. awful.util.pread("todo --add --priority  " .. todo) .. "</span>",
+		text = "<b><u>devtodo: </u></b> " .. "<span color='" .. beautiful.fg_focus .. "'>" .. awful.util.pread("todo --add --priority " .. todo) .. "</span>",
 		timeout = 10
 		})
 	end
@@ -466,7 +472,6 @@ root.buttons(awful.util.table.join(
 globalkeys = awful.util.table.join(
     awful.key({ modkey,           }, "Tab",  awful.tag.viewprev       ),
     awful.key({ modkey, "Shift"   }, "Tab",  awful.tag.viewnext       ),
-    awful.key({ modkey,           }, "Escape", awful.tag.history.restore),
     awful.key({ modkey            }, "n",      function() shifty.add({ rel_index = 1 }) end),
     awful.key({ modkey, "Control" }, "n",      function() shifty.add({ rel_index = 1, nopopup = true }) end),
     awful.key({ modkey,           }, "c",      shifty.rename),
@@ -574,11 +579,17 @@ globalkeys = awful.util.table.join(
 				text = awful.util.pread("df -h|sed '/none.*$/d'"), timeout = 10 }
 				keybind.pop()
 			end),
-		keybind.key({}, "p", "processes", function ()
+			keybind.key({}, "p", "processes", function ()
 				naughty.notify{ position = "top_right", title = "::processes::",
 				text = awful.util.pread("ps ux"), timeout = 15 }
 				keybind.pop()
 			end),
+			keybind.key({}, "a", "archey", function ()
+				naughty.notify{ position = "top_right", title = "::processes::",
+				text = awful.util.pread("archey"), timeout = 15 }
+				keybind.pop()
+			end),
+
 		}, "::info::" )
 	end),
 	--}}}
@@ -609,13 +620,6 @@ globalkeys = awful.util.table.join(
     awful.key({ modkey,           }, "Scroll_Lock", function () awful.util.spawn(locker) end),
     awful.key({ modkey,           }, "F12", awesome.quit),
     awful.key({ modkey,           }, "F11", awesome.restart),
-
-    -- MPD related
-    awful.key({ modkey, "Shift"   }, ",", function () mpc:previous() ; mpdbox.text = get_mpd() end),
-    awful.key({ modkey,           }, "9", function () mpc:toggle_play() ; mpdbox.text = get_mpd() end),
-    awful.key({ modkey,           }, "8", function () mpc:stop() ; mpdbox.text = get_mpd() end),
-    awful.key({ modkey,           }, "7", function () mpc:toggle_random() ; infobox.text = "toggled random" end),
-    awful.key({ modkey, "Shift"   }, ".", function () mpc:next() ; mpdbox.text= get_mpd() end),
 
     awful.key({ modkey, "Control" }, "p", function ()
       awful.prompt.run({ prompt = "Paste to: "},
@@ -652,7 +656,7 @@ globalkeys = awful.util.table.join(
 
 clientkeys = awful.util.table.join(
     awful.key({ modkey,           }, "f",      function (c) c.fullscreen = not c.fullscreen  end),
-    awful.key({ modkey,           }, "g",      function (c) c:kill()                         end),
+    awful.key({ modkey,           }, ".",      function (c) c:kill()                         end),
     awful.key({ modkey, "Control" }, "space",  awful.client.floating.toggle                     ),
     awful.key({ modkey, "Control" }, "Return", function (c) c:swap(awful.client.getmaster()) end),
     awful.key({ modkey,           }, "o",      awful.client.movetoscreen                        ),
@@ -751,8 +755,11 @@ awful.rules.rules = {
                      buttons = clientbuttons } },
     { rule = { class = "pinentry" },
       properties = { floating = true } },
+    { rule = { class = "Uzbl-core" },
+	  properties = { focus = false } },
     { rule = { class = "Unreal Tournament 2004" },
       properties = { floating = true } },
+
     -- Set Firefox to always map on tags number 2 of screen 1.
     -- { rule = { class = "Firefox" },
     --   properties = { tag = tags[1][2] } },

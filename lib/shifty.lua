@@ -24,6 +24,7 @@ local wibox = wibox
 local root = root
 local dbg= dbg
 local timer = timer
+local print = print
 
 module("shifty")
 -- }}}
@@ -36,6 +37,7 @@ config.defaults = {}
 config.guess_name = true
 config.guess_position = true
 config.remember_index = true
+config.sloppy = true
 config.default_name = "new"
 config.clientkeys = {}
 config.globalkeys = nil
@@ -87,7 +89,7 @@ end
 --@param prefix: if any prefix is to be added
 --@param no_selectall:
 function rename(tag, prefix, no_selectall)
-  local theme = beautiful.get()
+  local theme = beautiful.get() 
   local t = tag or awful.tag.selected(mouse.screen)
   local scr = t.screen
   local bg = nil
@@ -106,7 +108,8 @@ function rename(tag, prefix, no_selectall)
   awful.prompt.run( { 
     fg_cursor = fg, bg_cursor = bg, ul_cursor = "single",
     text = text, selectall = not no_selectall },
-    taglist[scr][tag2index(scr,t)][1],
+    -- taglist[scr][tag2index(scr,t)],
+    taglist[scr][tag2index(scr,t)][2],
     function (name) if name:len() > 0 then t.name = name; end end, 
     completion,
     awful.util.getdir("cache") .. "/history_tags", nil,
@@ -118,6 +121,7 @@ function rename(tag, prefix, no_selectall)
         set(t)
       end
       tagkeys(screen[scr])
+      -- screen[scr]:emit_signal("tag::detach")
       t:emit_signal("property::name")
     end
     )
@@ -212,6 +216,7 @@ function set(t, args)
 
   -- pick screen and get its tag table
   local scr = args.screen or (not t.screen and preset.screen) or t.screen or mouse.screen
+  local clientstomove = nil
   if scr > screen.count() then scr = screen.count() end
   if t.screen and scr ~= t.screen then
     tagtoscr(scr, t)
@@ -226,9 +231,16 @@ function set(t, args)
     if num then guessed_position = tonumber(t.name:sub(1,1)) end
   end
 
+  -- allow preset.layout to be a table to provide a different layout per screen
+  -- for a given tag
+  local preset_layout = preset.layout
+  if preset_layout and preset_layout[scr] then
+    preset_layout = preset.layout[scr]
+  end
+
   -- select from args, preset, getproperty, config.defaults.configs or defaults
   local props = {
-    layout = select{ args.layout, preset.layout, awful.tag.getproperty(t,"layout"), config.defaults.layout, awful.layout.suit.tile },
+    layout = select{ args.layout, preset_layout, awful.tag.getproperty(t,"layout"), config.defaults.layout, awful.layout.suit.tile },
     mwfact = select{ args.mwfact, preset.mwfact, awful.tag.getproperty(t,"mwfact"), config.defaults.mwfact, 0.55 },
     nmaster = select{ args.nmaster, preset.nmaster, awful.tag.getproperty(t,"nmaster"), config.defaults.nmaster, 1 },
     ncol = select{ args.ncol, preset.ncol, awful.tag.getproperty(t,"ncol"), config.defaults.ncol, 1 },
@@ -301,6 +313,7 @@ function set(t, args)
     if run then run(t) end
     awful.tag.setproperty(t, "initial", nil)
   end
+
 
   return t
 end
@@ -388,6 +401,17 @@ function del(tag)
 end
 --}}}
 
+--{{{ is_client_tagged : replicate behavior in tag.c - returns true if the given
+--                       client is tagged with the given tag
+function is_client_tagged( tag, client )
+  for i, c in ipairs(tag:clients()) do
+    if c == client then
+      return true
+    end
+  end
+  return false
+end
+
 --{{{ match : handles app->tag matching, a replacement for the manage hook in
 --            rc.lua
 --@param c : client to be matched
@@ -425,7 +449,12 @@ function match(c, startup)
             end
           end
           if a.startup and startup then a = awful.util.table.join(a, a.startup) end
-          if a.geometry ~=nil then geom = { x = a.geometry[1], y = a.geometry[2], width = a.geometry[3], height = a.geometry[4] } end
+          if a.geometry ~=nil then
+            geom = { x = a.geometry[1],
+                      y = a.geometry[2],
+                      width = a.geometry[3],
+                      height = a.geometry[4] }
+          end
           if a.float ~= nil then float = a.float end
           if a.slave ~=nil then slave = a.slave end
           if a.border_width ~= nil then c.border_width = a.border_width end
@@ -462,7 +491,8 @@ function match(c, startup)
   c:keys(keys)
 
   -- set properties of floating clients
-  if awful.client.floating.get(c) then
+  if float ~= nil then
+    awful.client.floating.set(c, float) 
     awful.placement.centered(c, c.transient_for)
     awful.placement.no_offscreen(c) -- this always seems to stick the client at 0,0 (incl titlebar)
   end
@@ -497,7 +527,9 @@ function match(c, startup)
       local res = {}
       for j, t in ipairs(name2tags(tn, target_screen) or name2tags(tn) or {}) do
         local mc = awful.tag.getproperty(t,"max_clients")
-        if not (mc and (#t:clients() >= mc)) or intrusive then
+        local tagged = is_client_tagged( t, c )
+        if not (mc and (((#t:clients() >= mc) and not tagged ) or (#t:clients() > mc))) 
+          or intrusive then
           table.insert(res, t)
         end
       end
@@ -515,7 +547,6 @@ function match(c, startup)
   if slave then awful.client.setslave(c) end
   c:tags( target_tags )
   if wfact then awful.client.setwfact(wfact, c) end
-  if float ~= nil then awful.client.floating.set(c, float) end
   if geom then c:geometry(geom) end
   if struts then c:struts(struts) end
 
@@ -553,8 +584,18 @@ function match(c, startup)
     c:lower()
   end
 
+  if config.sloppy then
+    -- Enable sloppy focus
+    c:add_signal("mouse::enter", function(c)
+
+      if awful.layout.get(c.screen) ~= awful.layout.suit.magnifier and awful.client.focus.filter(c) then
+        client.focus = c
+      end
+    end)
+  end
   -- execute run function if specified
   if run then run(c, target) end
+
 end
 --}}}
 
@@ -594,29 +635,36 @@ end
 --}}}
 
 --{{{ getpos : returns a tag to match position
---      * originally this function did a lot of client stuff, i think its
---      * better to leave what can be done by awful to be done by awful
---      *           -perry
 -- @param pos : the index to find
 -- @return v : the tag (found or created) at position == 'pos'
-function getpos(pos)
+function getpos(pos, scr_arg)
   local v = nil
   local existing = {}
   local selected = nil
-  local scr = mouse.screen or 1
+  local scr = scr_arg or mouse.screen or 1
   -- search for existing tag assigned to pos
   for i = 1, screen.count() do
-    local s = awful.util.cycle(screen.count(), scr + i - 1)
-    for j, t in ipairs(screen[s]:tags()) do
+    for j, t in ipairs(screen[i]:tags()) do
       if awful.tag.getproperty(t,"position") == pos then
         table.insert(existing, t)
-        if t.selected and s == scr then selected = #existing end
+        if t.selected and i == scr then selected = #existing end
       end
     end
   end
   if #existing > 0 then
-    -- if makeing another of an existing tag, return the end of the list
-    if selected then v = existing[awful.util.cycle(#existing, selected + 1)] else v = existing[1] end
+    -- if making another of an existing tag, return the end of the list
+    -- the optional 2nd argument decides if we return only 
+    if scr_arg ~= nil then 
+      for _, tag in pairs(existing) do
+        if tag.screen == scr_arg then return tag end
+      end
+      -- no tag with a position and scr_arg match found, clear v and
+      -- allow the subseqeunt conditions to be evaluated
+      v = nil
+    else
+      v = (selected and existing[awful.util.cycle(#existing, selected + 1)]) or existing[1]
+    end
+
   end
   if not v then
     -- search for preconf with 'pos' and create it
@@ -637,9 +685,14 @@ function init()
   local numscr = screen.count()
 
   for i, j in pairs(config.tags) do
-    local scr = j.screen or 1
-    if j.init and ( scr <= numscr ) then
-        add({ name = i, persist = true, screen = scr, layout = j.layout, mwfact = j.mwfact }) 
+    local scr = j.screen or { 1 }
+    if type(scr) ~= 'table' then
+      scr = { scr }
+    end
+    for _, s in pairs(scr) do 
+      if j.init and ( s <= numscr ) then
+        add({ name = i, persist = true, screen = s, layout = j.layout, mwfact = j.mwfact }) 
+      end
     end
   end
 end
