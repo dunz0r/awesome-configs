@@ -7,7 +7,7 @@
 	-- Notification library
 	require("naughty")
 	-- Dynamic Tagging
-	require("lib/shifty")
+	require("lib/shifty_new")
 	-- kAwouru's MPD library
 	require("lib/mpd") ; mpc = mpd.new({ hostname="10.0.0.4"  })
 	-- Keybind libraray by ierton
@@ -149,7 +149,6 @@
 		-- {{{ Wibox
 		-- Create a textclock widget
 		mytextclock = awful.widget.textclock({ layout = awful.widget.layout.horizontal.leftright}, " | %y.%m.%d.%H.%M %W | ", 30 )
-
 		-- Create a systray
 		mysystray = widget({ type = "systray" })
 		-- Create a wibox for each screen and add it
@@ -222,20 +221,20 @@
 			mywibox[s].widgets = {
 			{
 				{
-			    	mylayoutbox[s],
-			    	mytaglist[s],
-			    	layout = awful.widget.layout.horizontal.leftright
+					mytaglist[s],
+					layout = awful.widget.layout.horizontal.leftright
 				},
-				infobox,
-				mytextclock,
-				mypromptbox[s],
-				mpdbox,
-				s == 1 and mysystray or nil,
-				layout = awful.widget.layout.horizontal.rightleft
+					infobox,
+					mytextclock,
+					mypromptbox[s],
+					mpdbox,
+					s == 1 and mysystray or nil,
+					layout = awful.widget.layout.horizontal.rightleft
 			},
 			{
-			mytasklist[s],
-			layout = awful.widget.layout.horizontal.leftright
+				mylayoutbox[s],
+				mytasklist[s],
+				layout = awful.widget.layout.horizontal.leftright
 			},
 			layout = awful.widget.layout.vertical.flex
 			}
@@ -680,8 +679,11 @@ keys[6] = "e"
 keys[7] = "a"
 keys[8] = "s"
 keys[9] = "d"
+keys[10] = "z"
+keys[11] = "x"
+keys[12] = "c"
 -- Compute the maximum number of digit we need, limited to 9
-for i=1,9 do
+for i=1,12 do
   
   globalkeys = awful.util.table.join(globalkeys, awful.key({ modkey }, keys[i],
   function ()
@@ -708,28 +710,6 @@ for i=1,9 do
       end
     end))
 end
---[[ these will be removed as soon as I'm certain the solution works as expected
-for i = 1, 12 do
-    globalkeys = awful.util.table.join(globalkeys,
-        awful.key({ modkey }, keys[i],
-            function () awful.tag.viewonly(shifty.getpos(i)) end),
-        awful.key({ modkey, "Control" }, keys[i],
-            function ()t = shifty.getpos(i); t.selected = not t.selected end),
-        awful.key({ modkey, "Shift" }, keys[i],
-            function ()
-                if client.focus then 
-                    local c = client.focus
-                    slave = not ( client.focus == awful.client.getmaster(mouse.screen))
-                    t = shifty.getpos(i)
-                    awful.client.movetotag(t)
-                    awful.tag.viewonly(t)
-                    if slave then awful.client.setslave(c) end
-                end 
-            end
-        ),
-		)
-end
---]]
 
 clientbuttons = awful.util.table.join(
     awful.button({ }, 1, function (c) client.focus = c; c:raise() end),
