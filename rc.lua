@@ -7,9 +7,9 @@
 	-- Notification library
 	require("naughty")
 	-- Dynamic Tagging
-	require("lib/shifty_new")
+	require("lib/shifty_test")
 	-- kAwouru's MPD library
-	require("lib/mpd") ; mpc = mpd.new({ hostname="10.0.0.4"  })
+	require("lib/mpd") ; mpc = mpd.new({ hostname="10.0.0.2"  })
 	-- Keybind libraray by ierton
 	require("lib/keybind")
 	-- {{{ Variable definitions
@@ -93,7 +93,7 @@
 		shifty.config.tags = {
 			   ["1:irc"] = { spawn = terminal .. " -name SSH -title '::irssi::' -e ssh -t dunz0r@10.0.0.1 screen -RD ", position = 1, },
 		   ["2:www"] = { solitary = true, position = 2, max_clients = 5,
-						 exclusive = false, layout = awful.layout.suit.max, nopopup = true, spawn = browser_session },
+						 exclusive = false, layout = awful.layout.suit.max, nopopup = true, spawn = browser},
 		  ["3:term"] = { persist = true, position = 3, },
 		  ["5:ncmpcpp"] = { nopopup = true, persist = false, position = 5,
 						  spawn = terminal .. " -name '::ncmpcpp::' -title '::ncmpcpp::' -e ncmpcpp" },
@@ -126,7 +126,7 @@
 			{ match = {"::ncmpcpp.*",                   }, tag = "5:ncmpcpp",  },
 			{ match = {"MPlayer.*",                     }, tag = ":video", },
 			{ match = {"MilkyTracker.*","Sound.racker.*"}, tag = ":TRACKZ", },
-			{ match = {"wine"                           }, tag = ":Wine", nopopup = true, },
+			{ match = {"wine"                           }, tag = ":Wine"},
 			{ match = {"Deluge","rtorrent"              }, tag = ":p2p",                          },
 			{ match = {"apvlv", "Xpdf", "zathura"       }, tag = "8:PDF"},
 			{ match = {"gimp.toolbox",                  },  master = true , tag = ":gimp-tool" },
@@ -295,7 +295,7 @@ function get_playlist ()
 			break
 		end
 		if zstats.pos == stats.song then
-			list = list .. "<span color='" .. beautiful.fg_focus .. "'>" .. zstats.pos .. ". " .. awful.util.escape((zstats.artist or "NA") .. " - " .. (zstats.title or zstats.file)) .. "</span>\n"
+			list = list .. "<span color='" .. beautiful.fg_focus .. "'><b>" .. zstats.pos .. ". " .. awful.util.escape((zstats.artist or "NA") .. " - " .. (zstats.title or zstats.file)) .. "</b></span>\n"
 		else
 			list = list .. zstats.pos .. ". " .. awful.util.escape((zstats.artist or "NA") .. " - " .. (zstats.title or zstats.file) ) .. "\n"
 		end
@@ -471,12 +471,13 @@ root.buttons(awful.util.table.join(
 globalkeys = awful.util.table.join(
     awful.key({ modkey,           }, "Tab",  awful.tag.viewprev       ),
     awful.key({ modkey, "Shift"   }, "Tab",  awful.tag.viewnext       ),
-    awful.key({ modkey            }, "n",      function() shifty.add({ rel_index = 1 }) end),
-    awful.key({ modkey, "Control" }, "n",      function() shifty.add({ rel_index = 1, nopopup = true }) end),
-    awful.key({ modkey,           }, "c",      shifty.rename),
-    awful.key({ modkey, "Shift"   }, "x",      shifty.del),
-    awful.key({ modkey, "Shift"   }, "o",      function() shifty.set(awful.tag.selected(mouse.screen), { screen = awful.util.cycle(screen.count() , mouse.screen + 1) }) end),
+    awful.key({ modkey, "Control" }, "n",    shifty.add),
+    awful.key({ modkey,           }, "n",    shifty.send_next),
+    awful.key({ modkey, "Control" }, "r",    shifty.rename),
+    awful.key({ modkey, "Shift"   }, "g",    shifty.del),
+    awful.key({ modkey, "Shift"   }, "o",    function() shifty.set(awful.tag.selected(mouse.screen), { screen = awful.util.cycle(screen.count() , mouse.screen + 1) }) end),
 
+-- {{{ Modal bindings
 	--{{{ devtodo, modal bindings
 	awful.key({ modkey,           }, "t", function () 
 		keybind.push({
@@ -592,6 +593,7 @@ globalkeys = awful.util.table.join(
 		}, "::info::" )
 	end),
 	--}}}
+-- }}}
     -- switch layouts on the 2:www tag
     awful.key({ modkey,           }, "y", function () awful.layout.inc(wwwlayouts,  1) end),
 	-- focus switching
@@ -735,8 +737,8 @@ awful.rules.rules = {
                      buttons = clientbuttons } },
     { rule = { class = "pinentry" },
       properties = { floating = true } },
-    { rule = { class = "Uzbl-core" },
-	  properties = { focus = false } },
+    { rule = { class = "Uzbl" },
+	  properties = { focus = false, lower = true } },
     { rule = { class = "Unreal Tournament 2004" },
       properties = { floating = true } },
 
