@@ -31,8 +31,8 @@ theme.border_marked = "#91231c"
 
 -- Display the taglist squares
 -- {{{ Taglist
-theme.taglist_squares_sel   = "/usr/share/awesome/themes/defualt/taglist/squarefz.png"
-theme.taglist_squares_unsel = "/usr/share/awesome/themes/defualt/taglist/squarez.png"
+theme.taglist_squares_sel   = "/usr/share/awesome/themes/default/taglist/squarefw.png"
+theme.taglist_squares_unsel = "/usr/share/awesome/themes/default/taglist/squarew.png"
 theme.taglist_squares_resize = "false"
 -- }}}
 
