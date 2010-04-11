@@ -7,7 +7,7 @@
 	-- Notification library
 	require("naughty")
 	-- Dynamic Tagging
-	require("lib/shifty_test")
+	require("lib/shifty")
 	-- kAwouru's MPD library
 	require("lib/mpd") ; mpc = mpd.new({ hostname="10.0.0.2"  })
 	-- Keybind libraray by ierton
@@ -116,7 +116,7 @@
 		shifty.config.apps = {
 			{ match = { "::irssi.*",                    }, tag = "1:irc", },
 			{ match = { "::mutt::.*",                    }, tag = "7:mutt", },
-			{ match = {"Shiretoko.*", "Vimperator.*", "uzbl"       }, tag = "2:www" },
+			{ match = {"uzbl"       }, nopopup = true, tag = "2:www" },
 			{ match = {"urxvt"                          }, tag = "3:term",     },
 			{ match = {"xev"                            }, intrusive = true,     },
 			{ match = {"term:.*"                        }, tag = "3:term",     },
@@ -257,11 +257,11 @@ function get_mpd()
   	  now_playing = ( zstats.album  or "NA" ) .. "; " .. ( zstats.artist or "NA" ) .. " - " .. (zstats.title or string.gsub(zstats.file, ".*/", "" ) )
   	end
    if stats.state == "pause" then
-     now_playing = "<span color='#505050'>" .. awful.util.escape(now_playing) .. "</span>"
+     now_playing = "<span color='#505050'>" .. now_playing .. "</span>"
    else
-     now_playing = awful.util.escape(now_playing)
+     now_playing = now_playing
    end
-   mpd_text = now_playing
+   mpd_text = awful.util.escape(now_playing)
  end
 return mpd_text
 end
