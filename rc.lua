@@ -257,11 +257,11 @@ function get_mpd()
   	  now_playing = ( zstats.album  or "NA" ) .. "; " .. ( zstats.artist or "NA" ) .. " - " .. (zstats.title or string.gsub(zstats.file, ".*/", "" ) )
   	end
    if stats.state == "pause" then
-     now_playing = "<span color='#505050'>" .. now_playing .. "</span>"
+     now_playing = "<span color='#505050'>" .. awful.util.escape(now_playing) .. "</span>"
    else
-     now_playing = now_playing
+     now_playing = awful.util.escape(now_playing)
    end
-   mpd_text = awful.util.escape(now_playing)
+   mpd_text = now_playing
  end
 return mpd_text
 end
