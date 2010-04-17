@@ -12,6 +12,8 @@
 	require("lib/mpd") ; mpc = mpd.new({ hostname="10.0.0.2"  })
 	-- Keybind libraray by ierton
 	require("lib/keybind")
+	--
+	require("lib/revelation.lua")
 	-- {{{ Variable definitions
 	-- Themes define colours, icons, and wallpapers
 	theme_path = os.getenv("HOME") .. "/.config/awesome/theme.lua"
@@ -617,6 +619,7 @@ globalkeys = awful.util.table.join(
     awful.key({ modkey, "Control" }, "j", function () awful.screen.focus_relative( 1) end),
     awful.key({ modkey, "Control" }, "k", function () awful.screen.focus_relative(-1) end),
     awful.key({ modkey,           }, "u", awful.client.urgent.jumpto),
+    awful.key({ modkey,           }, "b", revelation.revelation),
     
     -- Standard program
     awful.key({ modkey,           }, "Return", function () awful.util.spawn(terminal) end),
