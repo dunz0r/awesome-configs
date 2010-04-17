@@ -7,7 +7,7 @@
 	-- Notification library
 	require("naughty")
 	-- Dynamic Tagging
-	require("lib/shifty")
+	require("lib/shifty_test")
 	-- kAwouru's MPD library
 	require("lib/mpd") ; mpc = mpd.new({ hostname="10.0.0.2"  })
 	-- Keybind libraray by ierton
@@ -50,8 +50,6 @@
 		awful.layout.suit.tile.top,
 		awful.layout.suit.fair,
 		awful.layout.suit.fair.horizontal,
-		awful.layout.suit.spiral,
-		awful.layout.suit.spiral.dwindle,
 		awful.layout.suit.max,
 		awful.layout.suit.max.fullscreen,
 		awful.layout.suit.magnifier,
@@ -154,7 +152,7 @@
 		-- Create a wibox for each screen and add it
 		mywibox = {}
 		mybwibox = {}
-		mypromptbox = {}
+		promptbox = {}
 		mylayoutbox = {}
 		mpdbox = {}
 		infobox = {}
@@ -195,7 +193,7 @@
 
 		for s = 1, screen.count() do
 			-- Create a promptbox for each screen
-			mypromptbox[s] = awful.widget.prompt({ layout = awful.widget.layout.horizontal.leftright })
+			promptbox[s] = awful.widget.prompt({ layout = awful.widget.layout.horizontal.leftright })
 			-- Create an mpd box for each screen
 			mpdbox = widget({ screen = 1, type = "textbox", layout = awful.widget.layout.horizontal.leftright })
 			-- The infobox
@@ -226,7 +224,7 @@
 				},
 					infobox,
 					mytextclock,
-					mypromptbox[s],
+					promptbox[s],
 					mpdbox,
 					s == 1 and mysystray or nil,
 					layout = awful.widget.layout.horizontal.rightleft
@@ -271,7 +269,7 @@ end
 	function album_art()
 		local stats = mpc:send("status")
 		local zstats = mpc:send("playlistid " .. stats.songid)
-		art = awful.util.pread("find '" .. musicdir .. awful.util.unescape(string.match(zstats.file, ".*/")) .. "' -regextype posix-egrep -iregex '.*(cover|front|albumart|outside|folder).*(png|jpg|gif)' | head -1")
+		art = awful.util.pread("find '" .. musicdir .. awful.util.unescape(string.match(zstats.file, ".*/")) .. "' -regextype posix-egrep -iregex '.*(cover|front|albumart|outside|folder).*(png|jpg|gif|bmp)' | head -1")
 
 		return string.gsub(art,"\n","")
 	end
@@ -410,7 +408,7 @@ function uzbl_prompt(prompt, text, socket, command)
         command = command .. ' '
       end
   --  awful.prompt.run({prompt=prompt, text=text},
-   --     mypromptbox[mouse.screen],
+   --     promptbox[mouse.screen],
    --     function(input)
   -- send through unix socket
     c = assert(socket.unix())
@@ -491,7 +489,7 @@ globalkeys = awful.util.table.join(
 		keybind.key({}, "a", "add a todo", function ()
 			awful.prompt.run(
 			{ prompt = "add a todo: "},
-			mypromptbox[mouse.screen].widget,
+			promptbox[mouse.screen].widget,
 		function (t)
 			add_todo(t)
 		end,
@@ -502,7 +500,7 @@ globalkeys = awful.util.table.join(
 		keybind.key({}, "r", "delete a todo", function ()
 			awful.prompt.run(
 			{ prompt = "delete todo: "},
-			mypromptbox[mouse.screen].widget,
+			promptbox[mouse.screen].widget,
 		function (t)
 			naughty.notify({
 				text = "<b><u>devtodo: </u></b> " .. "<span color='" .. beautiful.fg_focus .. "'>" .. "removed todo #" .. t .. "</span>",
@@ -548,6 +546,10 @@ globalkeys = awful.util.table.join(
 			end),
 			keybind.key({}, "x", "toggle play" , function ()
 				mpc:toggle_play() ; mpdbox.text = get_mpd()
+				keybind.pop()
+			end),
+			keybind.key({}, "s", "stop" , function ()
+				mpc:stop() ; mpdbox.text = get_mpd()
 				keybind.pop()
 			end),
 			keybind.key({}, "z", "toggle random" , function ()
@@ -619,16 +621,16 @@ globalkeys = awful.util.table.join(
     -- Standard program
     awful.key({ modkey,           }, "Return", function () awful.util.spawn(terminal) end),
     awful.key({ modkey,           }, "Scroll_Lock", function () awful.util.spawn(locker) end),
-    awful.key({ modkey,           }, "F12", awesome.quit),
     awful.key({ modkey,           }, "F11", awesome.restart),
+    awful.key({ modkey,           }, "F12", awesome.quit),
 
     awful.key({ modkey, "Control" }, "p", function ()
       awful.prompt.run({ prompt = "Paste to: "},
-      mypromptbox[mouse.screen].widget,
+      promptbox[mouse.screen].widget,
       function (s) paste(s) end,
 	      awful.completion.shell) 
 	end),
-    awful.key({ modkey, "Shift"    }, "p", function () paste() end),
+    awful.key({ modkey,           }, "p", function () paste() end),
 
     awful.key({ modkey,           }, "l",     function () awful.tag.incmwfact( 0.05)    end),
     awful.key({ modkey,           }, "h",     function () awful.tag.incmwfact(-0.05)    end),
@@ -644,12 +646,12 @@ globalkeys = awful.util.table.join(
     --awful.key({ modkey,           }, "y",   function () if awful.layout.getname == awful.layout.suit.max then awful.layout.set(awful.layout.suit.fair) end end),
     --awful.key({ modkey,           }, "`",   naugthy.notify{ text = awful.tag.getproperty(awful.tag, name) }),
     -- Prompt
-    awful.key({ modkey            }, "r",     function () mypromptbox[mouse.screen]:run() end),
+    awful.key({ modkey            }, "r",     function () promptbox[mouse.screen]:run() end),
 
-    awful.key({ modkey            }, "x",
+    awful.key({ modkey            }, "t",
               function ()
                   awful.prompt.run({ prompt = "Run Lua code: " },
-                  mypromptbox[mouse.screen].widget,
+                  promptbox[mouse.screen].widget,
                   awful.util.eval, nil,
                   awful.util.getdir("cache") .. "/history_eval")
               end)
@@ -662,6 +664,10 @@ clientkeys = awful.util.table.join(
     awful.key({ modkey, "Control" }, "Return", function (c) c:swap(awful.client.getmaster()) end),
     awful.key({ modkey,           }, "o",      awful.client.movetoscreen                        ),
     awful.key({ modkey, "Shift"   }, "r",      function (c) c:redraw()                       end),
+    awful.key({ modkey,           }, "F12", awesome.quit),
+    awful.key({ modkey,           }, "F12", awesome.quit),
+    awful.key({ modkey,           }, "F12", awesome.quit),
+    awful.key({ modkey,           }, "F12", awesome.quit),
     awful.key({ modkey,           }, "n",      function (c) c.minimized = not c.minimized    end),
     awful.key({ modkey, "Shift"   }, "m",
         function (c)
@@ -670,7 +676,7 @@ clientkeys = awful.util.table.join(
         end)
 )
 
--- Bind keys 1234,qwe,asd to tags 1 to 9
+-- Bind keys 123,qwe,asd,zxc to tags 1 to 12
 keys = {}
 keys[1] = "1"
 keys[2] = "2"

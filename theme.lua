@@ -6,19 +6,19 @@ theme = {}
 
 theme.font          = "Monaco 7"
 
-theme.bg_normal     = "#2a2a2a"
+theme.bg_normal     = "#0a0a0a"
 theme.bg_focus      = "#3e3e3e"
 theme.bg_urgent     = "#303030"
 theme.bg_minimize   = "#444444"
 
 theme.fg_normal     = "#898989"
-theme.fg_focus      = "#55aadf"
+theme.fg_focus      = "#c8c8c8"
 theme.fg_urgent     = "#ffffff"
 theme.fg_minimize   = "#ffffff"
 
 theme.border_width  = "1"
 theme.border_normal = "#000000"
-theme.border_focus  = "#55aadf"
+theme.border_focus  = "#898989"
 theme.border_marked = "#91231c"
 
 -- There are other variable sets
@@ -31,8 +31,8 @@ theme.border_marked = "#91231c"
 
 -- Display the taglist squares
 -- {{{ Taglist
-theme.taglist_squares_sel   = "/usr/share/awesome/themes/default/taglist/squarefw.png"
-theme.taglist_squares_unsel = "/usr/share/awesome/themes/default/taglist/squarew.png"
+theme.taglist_squares_sel   = "/usr/share/awesome/themes/defualt/taglist/squarefw.png"
+theme.taglist_squares_unsel = "/usr/share/awesome/themes/defualt/taglist/squaref.png"
 theme.taglist_squares_resize = "false"
 -- }}}
 
@@ -40,7 +40,7 @@ theme.taglist_squares_resize = "false"
 theme.awesome_icon           = "/usr/share/awesome/themes/default/awesome-icon.png"
 theme.menu_submenu_icon      = "/usr/share/awesome/themes/default/submenu.png"
 theme.tasklist_floating_icon = "/usr/share/awesome/themes/default/tasklist/floatingw.png"
-theme.wallpaper_cmd         = {"feh --bg-center .wallpaper"}
+theme.wallpaper_cmd         = {"Esetroot -m .wallpaper"}
 -- }}}
 
 -- {{{ Layout
