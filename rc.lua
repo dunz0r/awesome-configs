@@ -7,13 +7,13 @@
 	-- Notification library
 	require("naughty")
 	-- Dynamic Tagging
-	require("lib/shifty_test")
+	require("lib/shifty")
 	-- kAwouru's MPD library
 	require("lib/mpd") ; mpc = mpd.new({ hostname="10.0.0.2"  })
 	-- Keybind libraray by ierton
 	require("lib/keybind")
 	--
-	require("lib/revelation.lua")
+	require("lib/revelation")
 	-- {{{ Variable definitions
 	-- Themes define colours, icons, and wallpapers
 	theme_path = os.getenv("HOME") .. "/.config/awesome/theme.lua"
@@ -91,58 +91,57 @@
 		
 		-- {{{ Tags
 		shifty.config.tags = {
-			   ["1:irc"] = { spawn = terminal .. " -name SSH -title '::irssi::' -e ssh -t dunz0r@10.0.0.1 screen -RD ", position = 1, },
-		   ["2:www"] = { solitary = true, position = 2, max_clients = 5,
-						 exclusive = false, layout = awful.layout.suit.max, nopopup = true, spawn = browser},
-		  ["3:term"] = { persist = true, position = 3, },
-		  ["5:ncmpcpp"] = { nopopup = true, persist = false, position = 5,
-						  spawn = terminal .. " -name '::ncmpcpp::' -title '::ncmpcpp::' -e ncmpcpp" },
-		  ["6:code"] = { spawn = terminal .. " -title '- VIM' -e sh -c 'sleep 0.2s;" .. editor .. "'", nopopup = false, position = 6,
-						  layout = awful.layout.suit.max },
-			 [":p2p"] = { icon = "/usr/share/pixmaps/p2p.png", icon_only = true, },
-			[":gimp"] = { spawn = "gimp", layout = awful.layout.suit.max.fullscreen, sweep_delay = 2, screen = 1,  },
-			[":gimp-tool"] = { layout = awful.layout.suit.tile, sweep_delay = 2, screen = 2,  },
-			  [":fs"] = { rel_index = 1, exclusive = false                                           },
-			  [":Wine"] = { rel_index = -1, layout = awful.layout.suit.float, screen = 1, nopopup = true, },
-			  ["7:mutt"] = { position = 7, layout = awful.layout.suit.max, spawn = terminal .. " -title '::mutt::' -e sh -c 'sleep 0.1s;mutt'", nopopup = false, },
-			  ["4:video"] = { nopopup = false, position = 4, layout = awful.layout.suit.float, },
-			  ["8:PDF"] = { layout = awful.layout.suit.max.fullscreen, position = 8, nopopup = false },
-			  ["9:img"] = { position = 9, layout = awful.layout.suit.max.fullscreen, nopopup = false, },
-			  ["cssh"] = { layout = awful.layout.suit.float, screen = 1, nopopup = false, exclusive = false, }
+		irc = { spawn = terminal .. " -name SSH -title '::irssi::' -e ssh -t dunz0r@10.0.0.1 screen -RD ", init = true, position = 1, },
+		www = { solitary = true, position = 2, max_clients = 5,
+				exclusive = false, layout = awful.layout.suit.max, nopopup = true, spawn = browser},
+		term = { init = true, persist = true, position = 3, },
+		ncmpcpp = { nopopup = true, persist = false, position = 5,
+				spawn = terminal .. " -name '::ncmpcpp::' -title '::ncmpcpp::' -e ncmpcpp", },
+		code = { spawn = terminal .. " -title '- VIM' -e sh -c 'sleep 0.2s;" .. editor .. "'", nopopup = false, position = 6,
+				layout = awful.layout.suit.max },
+		gimp = { spawn = "gimp", layout = awful.layout.suit.max.fullscreen, sweep_delay = 2, screen = 1,  },
+		gimptool = { layout = awful.layout.suit.tile, sweep_delay = 2, screen = 2,  },
+		mutt = { position = 7, layout = awful.layout.suit.max, 
+				spawn = terminal .. " -name mutt -title '::mutt::' -e sh -c 'sleep 0.1s;mutt'", nopopup = false, },
+		video = { nopopup = false, position = 4, layout = awful.layout.suit.float, },
+		PDF = { layout = awful.layout.suit.max.fullscreen, position = 8, nopopup = false },
+		img = { position = 9, layout = awful.layout.suit.max.fullscreen, nopopup = false, }
 		}
 		--}}}
 		
 		-- {{{ Apps
 		shifty.config.apps = {
-			{ match = { "::irssi.*",                    }, tag = "1:irc", },
-			{ match = { "::mutt::.*",                    }, tag = "7:mutt", },
-			{ match = {"uzbl"       }, nopopup = true, tag = "2:www" },
-			{ match = {"urxvt"                          }, tag = "3:term",     },
+			{ match = { "::irssi:",                    }, tag = "irc", },
+			{ match = { "::mutt::",                    }, tag = "mutt", },
+			{ match = {"::uzbl::"       }, nopopup = true, tag = "www" },
+			{ match = {"urxvt"                          }, tag = "term",     },
 			{ match = {"xev"                            }, intrusive = true,     },
-			{ match = {"term:.*"                        }, tag = "3:term",     },
-			{ match = {".* - VIM"                       }, tag = "6:code",     },
+			{ match = {"::term::"                        }, tag = "term",     },
+			{ match = {".* - VIM"                       }, tag = "code",     },
 			{ match = { "zenity"                        }, intrusive = true, float = true},
-			{ match = {"newsbeuter:.*"                  }, tag = "7:newsbeuter",},
-			{ match = {"::ncmpcpp.*",                   }, tag = "5:ncmpcpp",  },
+			{ match = {"::ncmpcpp.*",                   }, tag = "ncmpcpp",  },
 			{ match = {"MPlayer.*",                     }, tag = ":video", },
 			{ match = {"MilkyTracker.*","Sound.racker.*"}, tag = ":TRACKZ", },
 			{ match = {"wine"                           }, tag = ":Wine"},
-			{ match = {"Deluge","rtorrent"              }, tag = ":p2p",                          },
-			{ match = {"apvlv", "Xpdf", "zathura"       }, tag = "8:PDF"},
+			{ match = {"apvlv", "Xpdf", "zathura"       }, tag = "PDF"},
 			{ match = {"gimp.toolbox",                  },  master = true , tag = ":gimp-tool" },
 			{ match = {"gimp.dock",                     },  slave = true , tag = ":gimp-tool" },
 			{ match = {"gimp-image-window",             }, master = true, tag = ":gimp" },
 			{ match = {"gimp",             }, master = true, tag = ":gimp" },
 			{ match = {"feh.*"                          }, tag = ":img",          },
-			{ match = {"skype.*"                        }, tag = "9:skype",       },
-			{ match = {".*Sun Virtualbox"               }, tag = "7:Vbox",        },
-			{ match = { "mc -.+"                        }, tag = ":fs:",          },
-			{ match = { "" }, honorsizehints= true,
-				 buttons = {
-				 awful.button({ }, 1, function (c) client.focus = c; c:raise() end),
-				 awful.button({ modkey }, 1, function (c) awful.mouse.client.move() end),
-				 awful.button({ modkey }, 3, awful.mouse.client.resize ), }, },
-			   }
+			{ match = {"skype.*"                        }, tag = "skype",       },
+			{ match = {".*Sun Virtualbox"               }, tag = "Vbox",        },
+			{ match = {""},
+    				buttons = awful.util.table.join(
+        				awful.button({}, 1, function(c) client.focus = c; c:raise() end),
+        				awful.button({modkey}, 1, function(c)
+            				client.focus = c
+            				c:raise()
+            				awful.mouse.client.move(c)
+        				end),
+        				awful.button({modkey}, 3, awful.mouse.client.resize))
+  					}
+			}
 			-- }}}
 		-- }}}
 
@@ -241,6 +240,24 @@
 
 		end
 		-- }}}
+
+-- {{{ Menu
+-- Create a laucher widget and a main menu
+myawesomemenu = {
+   { "manual", terminal .. " -e man awesome" },
+   { "edit config", editor_cmd .. " " .. awful.util.getdir("config") .. "/rc.lua" },
+   { "restart", awesome.restart },
+   { "quit", awesome.quit }
+}
+
+mymainmenu = awful.menu({ items = { { "awesome", myawesomemenu, beautiful.awesome_icon },
+                                    { "open terminal", terminal }
+                                  }
+                        })
+
+mylauncher = awful.widget.launcher({ image = image(beautiful.awesome_icon),
+                                     menu = mymainmenu })
+-- }}}
 
 --{{{ Functions
 
@@ -473,7 +490,7 @@ globalkeys = awful.util.table.join(
     awful.key({ modkey, "Shift"   }, "Tab",  awful.tag.viewnext       ),
     awful.key({ modkey, "Control" }, "n",    shifty.add),
     awful.key({ modkey,           }, "n",    shifty.send_next),
-    awful.key({ modkey, "Control" }, "r",    shifty.rename),
+    awful.key({ modkey, "Shift"   }, "r",    shifty.rename),
     awful.key({ modkey, "Shift"   }, "g",    shifty.del),
     awful.key({ modkey, "Shift"   }, "o",    function() shifty.set(awful.tag.selected(mouse.screen), { screen = awful.util.cycle(screen.count() , mouse.screen + 1) }) end),
 
@@ -651,7 +668,7 @@ globalkeys = awful.util.table.join(
     -- Prompt
     awful.key({ modkey            }, "r",     function () promptbox[mouse.screen]:run() end),
 
-    awful.key({ modkey            }, "t",
+    awful.key({ modkey, "Control" }, "r",
               function ()
                   awful.prompt.run({ prompt = "Run Lua code: " },
                   promptbox[mouse.screen].widget,
