@@ -7,7 +7,7 @@
 	-- Notification library
 	require("naughty")
 	-- Dynamic Tagging
-	require("lib/shifty")
+	require("shifty")
 	-- kAwouru's MPD library
 	require("lib/mpd") ; mpc = mpd.new({ hostname="10.0.0.2"  })
 	-- Keybind libraray by ierton
@@ -47,7 +47,6 @@
 	layouts =
 	{
 		awful.layout.suit.tile,
-		awful.layout.suit.tile.left,
 		awful.layout.suit.tile.bottom,
 		awful.layout.suit.tile.top,
 		awful.layout.suit.fair,
@@ -99,7 +98,7 @@
 				spawn = terminal .. " -name '::ncmpcpp::' -title '::ncmpcpp::' -e ncmpcpp", },
 		code = { spawn = terminal .. " -title '- VIM' -e sh -c 'sleep 0.2s;" .. editor .. "'", nopopup = false, position = 6,
 				layout = awful.layout.suit.max },
-		gimp = { spawn = "gimp", layout = awful.layout.suit.max.fullscreen, sweep_delay = 2, screen = 1,  },
+		gimp = { spawn = "gimp", layout = awful.layout.suit.max, sweep_delay = 2, screen = 1,  },
 		gimptool = { layout = awful.layout.suit.tile, sweep_delay = 2, screen = 2,  },
 		mutt = { position = 7, layout = awful.layout.suit.max, 
 				spawn = terminal .. " -name mutt -title '::mutt::' -e sh -c 'sleep 0.1s;mutt'", nopopup = false, },
@@ -121,15 +120,15 @@
 			{ match = {".* - VIM"                       }, tag = "code",     },
 			{ match = { "zenity"                        }, intrusive = true, float = true},
 			{ match = {"::ncmpcpp.*",                   }, tag = "ncmpcpp",  },
-			{ match = {"MPlayer.*",                     }, tag = ":video", },
-			{ match = {"MilkyTracker.*","Sound.racker.*"}, tag = ":TRACKZ", },
-			{ match = {"wine"                           }, tag = ":Wine"},
+			{ match = {"MPlayer.*",                     }, tag = "video", },
+			{ match = {"MilkyTracker.*","Sound.racker.*"}, tag = "TRACKZ", },
+			{ match = {"wine"                           }, tag = "wine"},
 			{ match = {"apvlv", "Xpdf", "zathura"       }, tag = "PDF"},
-			{ match = {"gimp.toolbox",                  },  master = true , tag = ":gimp-tool" },
-			{ match = {"gimp.dock",                     },  slave = true , tag = ":gimp-tool" },
-			{ match = {"gimp-image-window",             }, master = true, tag = ":gimp" },
-			{ match = {"gimp",             }, master = true, tag = ":gimp" },
-			{ match = {"feh.*"                          }, tag = ":img",          },
+			{ match   = {"gimp%-dock", "gimp%-toolbox"},
+					tag     = "gimptool",
+					slave   = true, float = false, dockable = true, honorsizehints=false },
+			{ match = {"gimp%-image-window",             }, master = true, tag = "gimp" },
+			{ match = {"feh.*"                          }, tag = "img",          },
 			{ match = {"skype.*"                        }, tag = "skype",       },
 			{ match = {".*Sun Virtualbox"               }, tag = "Vbox",        },
 			{ match = {""},
@@ -793,7 +792,6 @@ client.add_signal("manage", function (c, startup)
         -- Set the windows at the slave,
         -- i.e. put it at the end of others instead of setting it master.
         -- awful.client.setslave(c)
-
         -- Put windows in a smart way, only if they does not set an initial position.
         if not c.size_hints.user_position and not c.size_hints.program_position then
             awful.placement.no_overlap(c)
