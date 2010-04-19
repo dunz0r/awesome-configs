@@ -35,7 +35,7 @@
 	awful.menu.menu_keys.down = { "j"}
 	awful.menu.menu_keys.exec = { "g"}
 	-- what to use as a separator
-	--sep = "<span color='" .. beautiful.bg_focus .. "'>-</span><span color='" .. beatuiful.fg_normal .. "'-</span>"
+	sep = "<span weight='bold' font='Fixed' color='" .. beautiful.fg_focus .. "'>:</span>"
 		-- Default modkey.
 		-- Usually, Mod4 is the key with a logo between Control and Alt.
 		-- If you do not like this or do not have such a key,
@@ -147,7 +147,7 @@
 
 		-- {{{ Wibox
 		-- Create a textclock widget
-		mytextclock = awful.widget.textclock({ layout = awful.widget.layout.horizontal.leftright}, " | %y.%m.%d.%H.%M %W | ", 30 )
+		mytextclock = awful.widget.textclock({ layout = awful.widget.layout.horizontal.leftright}, "%y.%m.%d.%H.%M:%W" .. sep, 30 )
 		-- Create a systray
 		mysystray = widget({ type = "systray" })
 		-- Create a wibox for each screen and add it
@@ -280,7 +280,7 @@ function get_mpd()
    end
   mpd_text = now_playing
  end
-return mpd_text
+return mpd_text .. sep
 end
 --}}}
 
@@ -288,7 +288,7 @@ end
 	function album_art()
 		local stats = mpc:send("status")
 		local zstats = mpc:send("playlistid " .. stats.songid)
-		art = awful.util.pread("find '" .. musicdir .. awful.util.unescape(string.match(zstats.file, ".*/")) .. "' -regextype posix-egrep -iregex '.*(cover|front|albumart|outside|folder).*(png|jpg|gif|bmp)' | head -1")
+		art = awful.util.pread('find "' .. musicdir .. awful.util.unescape(string.match(zstats.file, ".*/")) .. '" -regextype posix-egrep -iregex ".*(cover|front|albumart|outside|folder).*(png|jpg|gif|bmp)" | head -1')
 
 		return string.gsub(art,"\n","")
 	end
@@ -379,7 +379,7 @@ function get_load_temp(sensor)
 	lf:close()
 	tf:close()
 
-	return l .. " | " .. t .. " "
+	return l .. sep .. t
 end
 --}}}
 
@@ -492,7 +492,7 @@ globalkeys = awful.util.table.join(
     awful.key({ modkey,           }, "n",    shifty.send_next),
     awful.key({ modkey, "Shift"   }, "r",    shifty.rename),
     awful.key({ modkey, "Shift"   }, "g",    shifty.del),
-    awful.key({ modkey, "Shift"   }, "o",    function() shifty.set(awful.tag.selected(mouse.screen), { screen = awful.util.cycle(screen.count() , mouse.screen + 1) }) end),
+    awful.key({ modkey,           }, "o",    function() shifty.set(awful.tag.selected(mouse.screen), { screen = awful.util.cycle(screen.count() , mouse.screen + 1) }) end),
 
 -- {{{ Modal bindings
 	--{{{ devtodo, modal bindings
@@ -682,7 +682,7 @@ clientkeys = awful.util.table.join(
     awful.key({ modkey,           }, ".",      function (c) c:kill()                         end),
     awful.key({ modkey, "Control" }, "space",  awful.client.floating.toggle                     ),
     awful.key({ modkey, "Control" }, "Return", function (c) c:swap(awful.client.getmaster()) end),
-    awful.key({ modkey,           }, "o",      awful.client.movetoscreen                        ),
+    awful.key({ modkey, "Shift"   }, "o",      awful.client.movetoscreen                        ),
     awful.key({ modkey, "Shift"   }, "r",      function (c) c:redraw()                       end),
     awful.key({ modkey,           }, "F12", awesome.quit),
     awful.key({ modkey,           }, "F12", awesome.quit),
@@ -816,4 +816,5 @@ client.add_signal("unfocus", function(c) c.border_color = beautiful.border_norma
 -- stuff to do so we don't have to wait for boxes and the likes to update
 get_weather(0)
 mpdbox.text = get_mpd()
+infobox.text = get_load_temp("THRM")
 -- }}}
