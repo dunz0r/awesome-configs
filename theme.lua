@@ -35,11 +35,11 @@ theme.wallpaper_cmd = { "feh --bg-center /home/dunz0r/.wallpaper" }
 -- You can add as many variables as
 -- you wish and access them by using
 -- beautiful.variable in your rc.lua
---theme.fg_widget        = "#AECF96"
---theme.fg_center_widget = "#88A175"
---theme.fg_end_widget    = "#FF5656"
---theme.bg_widget        = "#494B4F"
---theme.border_widget    = "#3F3F3F"
+theme.fg_widget        = "#AECF96"
+theme.fg_center_widget = "#88A175"
+theme.fg_end_widget    = "#FF5656"
+theme.bg_widget        = "#494B4F"
+theme.border_widget    = "#3F3F3F"
 -- }}}
 
 -- {{{ Mouse finder
@@ -106,6 +106,7 @@ theme.titlebar_maximized_button_focus_active  = "/usr/share/awesome/themes/zenbu
 theme.titlebar_maximized_button_normal_active = "/usr/share/awesome/themes/zenburn/titlebar/maximized_normal_active.png"
 theme.titlebar_maximized_button_focus_inactive  = "/usr/share/awesome/themes/zenburn/titlebar/maximized_focus_inactive.png"
 theme.titlebar_maximized_button_normal_inactive = "/usr/share/awesome/themes/zenburn/titlebar/maximized_normal_inactive.png"
+
 -- }}}
 -- }}}
 theme.awesome_icon = "/usr/share/awesome/icons/awesome16.png"

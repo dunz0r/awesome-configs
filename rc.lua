@@ -12,8 +12,10 @@
 	require("lib/mpd") ; mpc = mpd.new({ hostname="10.0.0.2"  })
 	-- Keybind libraray by ierton
 	require("lib/keybind")
-	--
+	-- Cool stuff
 	require("lib/revelation")
+	-- Widgets
+	require("vicious")
 	-- {{{ Variable definitions
 	-- Themes define colours, icons, and wallpapers
 	theme_path = os.getenv("HOME") .. "/.config/awesome/theme.lua"
@@ -35,13 +37,8 @@
 	awful.menu.menu_keys.down = { "j"}
 	awful.menu.menu_keys.exec = { "g"}
 	-- what to use as a separator
-	sep = "<span weight='bold' font='Fixed' color='" .. beautiful.fg_focus .. "'>:</span>"
-		-- Default modkey.
-		-- Usually, Mod4 is the key with a logo between Control and Alt.
-		-- If you do not like this or do not have such a key,
-		-- I suggest you to remap Mod4 to another key using xmodmap or other tools.
-		-- However, you can use another modifier like Mod1, but it may interact with others.
-		modkey = "Mod4"
+	sep = "<span weight='bold' font='Fixed' color='" .. beautiful.fg_focus .. "'>|</span>"
+	modkey = "Mod4"
 
 	-- Table of layouts to cover with awful.layout.inc, order matters.
 	layouts =
@@ -56,7 +53,7 @@
 		awful.layout.suit.magnifier,
 		awful.layout.suit.floating
 	}
-	-- Table of layouts to use on the 2:www tag
+	-- Table of layouts to use on the www tag
 	wwwlayouts = 
 	{
 		awful.layout.suit.max,
@@ -90,10 +87,10 @@
 		
 		-- {{{ Tags
 		shifty.config.tags = {
-		irc = { spawn = terminal .. " -name SSH -title '::irssi::' -e ssh -t dunz0r@10.0.0.1 screen -RD ", init = true, position = 1, },
+		irc = { spawn = terminal .. " -name SSH -title '::irssi::' -e ssh -t dunz0r@10.0.0.1 screen -RD ", position = 1, },
 		www = { solitary = true, position = 2, max_clients = 5,
 				exclusive = false, layout = awful.layout.suit.max, nopopup = true, spawn = browser},
-		term = { init = true, persist = true, position = 3, },
+		term = { persist = true, position = 3, },
 		ncmpcpp = { nopopup = true, persist = false, position = 5,
 				spawn = terminal .. " -name '::ncmpcpp::' -title '::ncmpcpp::' -e ncmpcpp", },
 		code = { spawn = terminal .. " -title '- VIM' -e sh -c 'sleep 0.2s;" .. editor .. "'", nopopup = false, position = 6,
@@ -104,13 +101,15 @@
 				spawn = terminal .. " -name mutt -title '::mutt::' -e sh -c 'sleep 0.1s;mutt'", nopopup = false, },
 		video = { nopopup = false, position = 4, layout = awful.layout.suit.float, },
 		PDF = { layout = awful.layout.suit.max.fullscreen, position = 8, nopopup = false },
-		img = { position = 9, layout = awful.layout.suit.max.fullscreen, nopopup = false, }
+		img = { position = 9, layout = awful.layout.suit.max.fullscreen, nopopup = false, },
+		wine = { layout = awful.layout.suit.float }
 		}
 		--}}}
 		
 		-- {{{ Apps
 		shifty.config.apps = {
-			{ match = { "::irssi:",                    }, tag = "irc", },
+			{ match = { "::irssi::",                    }, tag = "irc", },
+			{ match = { "SSH",                    }, tag = "irc", },
 			{ match = { "::mutt::",                    }, tag = "mutt", },
 			{ match = {"::uzbl::"       }, nopopup = true, tag = "www" },
 			{ match = {"uzbl"       }, nopopup = true, tag = "www" },
@@ -145,14 +144,67 @@
 			-- }}}
 		-- }}}
 
+--{{{ Vicious
+-- CPU Widget
+-- Initialize widget
+cpuwidget = awful.widget.graph()
+-- Graph properties
+cpuwidget:set_width(50)
+cpuwidget:set_height(14)
+cpuwidget:set_background_color(beautiful.bg_normal)
+cpuwidget:set_border_color(beautiful.fg_focus)
+cpuwidget:set_color(beautiful.fg_focus)
+cpuwidget:set_background_color(beautiful.fg_off_widget)
+cpuwidget:set_gradient_angle(0):set_gradient_colors({
+	   beautiful.fg_end_widget, beautiful.fg_center_widget, beautiful.fg_widget
+})
+-- Register widget
+vicious.register(cpuwidget, vicious.widgets.cpu, "$1")
+-- {{{ WEATHER
+weatherwidget = widget({ type = "textbox" })
+vicious.register(weatherwidget, vicious.widgets.weather, "<span color='#d6d6d6'>${sky}</span> @ ${tempc}°C on", 1200, "KOUN")
+
+function get_forecast(mode)
+    local s, cutoff
+    if mode == "quick" then
+        s = " | sed 's/Tomorrow Night/.../'"
+        cutoff = "/Tomorrow Night/"
+    elseif mode == "full" then
+        s = ""
+        cutoff = 38
+    end
+
+    local fp = io.popen("sed -n '1," .. cutoff .. "p' /tmp/weather" .. s)
+    local forecast = fp:read("*a")
+    fp:close()
+
+    return forecast
+end
+
+-- buttons
+weatherwidget:buttons(awful.util.table.join(
+    awful.button({ }, 1, function ()
+        naughty.notify { text = get_forecast("quick"), timeout = 5, hover_timeout = 0.5 }
+    end),
+    awful.button({ }, 2, function ()
+        awful.util.spawn(browser .. " http://www.accuweather.com/us/ok/norman/73071/city-weather-forecast.asp?partner=accuweather&u=1&traveler=0", false)
+        awful.tag.viewonly(tags[1][2])
+    end),
+    awful.button({ }, 3, function ()
+        naughty.notify { text = get_forecast("full"), timeout = 10, hover_timeout = 0.5 }
+    end)))
+-- }}}
+
+
+--}}}
+
 		-- {{{ Wibox
 		-- Create a textclock widget
-		mytextclock = awful.widget.textclock({ layout = awful.widget.layout.horizontal.leftright}, "%y.%m.%d.%H.%M:%W" .. sep, 30 )
+		mytextclock = awful.widget.textclock({ layout = awful.widget.layout.horizontal.leftright}, "%y.%m.%d.%H.%M:%W" .. sep, 20 )
 		-- Create a systray
 		mysystray = widget({ type = "systray" })
 		-- Create a wibox for each screen and add it
 		mywibox = {}
-		mybwibox = {}
 		promptbox = {}
 		mylayoutbox = {}
 		mpdbox = {}
@@ -223,10 +275,12 @@
 					mytaglist[s],
 					layout = awful.widget.layout.horizontal.leftright
 				},
-					infobox,
 					mytextclock,
 					promptbox[s],
 					mpdbox,
+					weatherwidget.widget,
+					cpuwidget.widget,
+					infobox,
 					s == 1 and mysystray or nil,
 					layout = awful.widget.layout.horizontal.rightleft
 			},
@@ -239,24 +293,6 @@
 			}
 
 		end
-		-- }}}
-
--- {{{ Menu
--- Create a laucher widget and a main menu
-myawesomemenu = {
-   { "manual", terminal .. " -e man awesome" },
-   { "edit config", editor_cmd .. " " .. awful.util.getdir("config") .. "/rc.lua" },
-   { "restart", awesome.restart },
-   { "quit", awesome.quit }
-}
-
-mymainmenu = awful.menu({ items = { { "awesome", myawesomemenu, beautiful.awesome_icon },
-                                    { "open terminal", terminal }
-                                  }
-                        })
-
-mylauncher = awful.widget.launcher({ image = image(beautiful.awesome_icon),
-                                     menu = mymainmenu })
 -- }}}
 
 --{{{ Functions
@@ -265,7 +301,7 @@ mylauncher = awful.widget.launcher({ image = image(beautiful.awesome_icon),
 function get_mpd()
   local stats = mpc:send("status")
    if stats.errormsg then
-    local mpd_text = "MPD not running? | "
+    local mpd_text = "MPD error. "
    else
     if stats.state == "stop" then
   	 local now_playing = " stopped"
@@ -331,6 +367,40 @@ end
 	end
 --}}}
 
+--{{{ Find song in playlist and play it.
+ function grep(c,q,l)
+        s = ""
+        x = 0 
+        f = assert(io.popen(c .." " ..  q, 'r'))
+        if not l then
+            l = 30
+        end 
+
+        for line in f:lines() do
+            if x > l then
+                s = s .. "\n\nMore than "..l.." results"
+                break
+            end 
+
+            s = s .. "\n" .. string.gsub(awful.util.escape(line),"^%d-%)","<span color='"..beautiful.fg_unfocus.."'>%0</span>")
+            x = x + 1 
+        end 
+
+        if x == 1 then
+            os.execute("mpc play " .. string.gsub(string.gsub(s,"%).*",""),".*>","") .. " &> /dev/null")
+            mpdbox.text = get_mpd()
+
+            return "One match autostart.\n" .. get_mpd()
+        elseif x ~= 0 then
+            s = string.gsub(s,nocase(q),"<span color='"..beautiful.fg_highlight.."'>%0</span>")
+            return s
+        else
+            return "No matches"
+        end 
+    end 
+
+--}}}
+
 --{{{ Show todos
     function show_todo(graft)
         local todo = awful.util.pread("todo --mono")
@@ -379,7 +449,7 @@ function get_load_temp(sensor)
 	lf:close()
 	tf:close()
 
-	return l .. sep .. t
+	return l .. sep .. t .. " "
 end
 --}}}
 
@@ -491,7 +561,7 @@ globalkeys = awful.util.table.join(
     awful.key({ modkey, "Control" }, "n",    shifty.add),
     awful.key({ modkey,           }, "n",    shifty.send_next),
     awful.key({ modkey, "Shift"   }, "r",    shifty.rename),
-    awful.key({ modkey, "Shift"   }, "g",    shifty.del),
+    awful.key({ modkey, "Shift"   }, ".",    shifty.del),
     awful.key({ modkey,           }, "o",    function() shifty.set(awful.tag.selected(mouse.screen), { screen = awful.util.cycle(screen.count() , mouse.screen + 1) }) end),
 
 -- {{{ Modal bindings
@@ -595,6 +665,11 @@ globalkeys = awful.util.table.join(
 				text = get_weather(1), timeout = 10 }
 				keybind.pop()
 			end),
+			keybind.key({}, "c", "show clients", function ()
+				naughty.notify{ position = "top_right", title = "::weather::",
+				text = clientfind({name="::uzbl::"}), timeout = 10 }
+				keybind.pop()
+			end),
 			keybind.key({}, "d", "disk info", function ()
 				naughty.notify{ position = "top_right", title = "::disks::",
 				text = awful.util.pread("df -h|sed '/none.*$/d'"), timeout = 10 }
@@ -633,8 +708,8 @@ globalkeys = awful.util.table.join(
     -- Layout manipulation
     awful.key({ modkey, "Shift"   }, "j", function () awful.client.swap.byidx(  1)    end),
     awful.key({ modkey, "Shift"   }, "k", function () awful.client.swap.byidx( -1)    end),
-    awful.key({ modkey, "Control" }, "j", function () awful.screen.focus_relative( 1) end),
-    awful.key({ modkey, "Control" }, "k", function () awful.screen.focus_relative(-1) end),
+    awful.key({ modkey,           }, "<", function () awful.screen.focus_relative( 1) end),
+    awful.key({ modkey, "Shift"   }, "<", function () awful.screen.focus_relative(-1) end),
     awful.key({ modkey,           }, "u", awful.client.urgent.jumpto),
     awful.key({ modkey,           }, "b", revelation.revelation),
     
