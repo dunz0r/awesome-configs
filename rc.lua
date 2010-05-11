@@ -896,4 +896,5 @@ get_weather(0)
 mpdbox.text = get_mpd()
 infobox.text = get_load_temp("THRM")
 separator.text = sep
+os.execute("xset -b")
 -- }}}
