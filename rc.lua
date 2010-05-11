@@ -162,7 +162,7 @@ vicious.register(cpuwidget, vicious.widgets.cpu, "$1")
 cputext = widget({ type = "textbox" })
 cputext.width = 30
 -- Register widget
-vicious.register(cputext, vicious.widgets.cpu, "$1%")
+vicious.register(cputext, vicious.widgets.cpu, "CPU: $1% ")
 
 -- Memory usage graph
 -- Initialize widget
@@ -174,13 +174,20 @@ memwidget:set_background_color(beautiful.bg_normal)
 memwidget:set_border_color(beautiful.fg_focus)
 memwidget:set_color(beautiful.fg_focus)
 -- Register widget
-vicious.register(memwidget, vicious.widgets.mem, "$1", 13)
+vicious.register(memwidget, vicious.widgets.mem, " $1", 13)
 
 -- Memory usage box
 -- Initialize widget
 memtext = widget({ type = "textbox" })
 -- Register widget
-vicious.register(memtext, vicious.widgets.mem, "$1% ($2MB/$3MB)", 13)
+vicious.register(memtext, vicious.widgets.mem, "MEM: $1% ($2MB/$3MB) ", 13)
+
+-- Netwidgets
+-- Initialize widget
+nettext = widget({ type = "textbox" })
+-- Register widget
+vicious.register(nettext, vicious.widgets.net, "ETH0 TX:${eth0 down_mb} RX${eth0 up_mb}", 13)
+
 
 --}}}
 
@@ -240,10 +247,6 @@ vicious.register(memtext, vicious.widgets.mem, "$1% ($2MB/$3MB)", 13)
 			infobox = widget({ screen = 1, type = "textbox", layout = awful.widget.layout.horizontal.leftright })
 			-- a separator
 			separator = widget({ type = "textbox", })
-			cpubox = widget({ type = "textbox", })
-			cpubox.text = " CPU:"
-			membox = widget({ type = "textbox", })
-			membox.text = " MEM:"
 			-- Create an imagebox widget which will contains an icon indicating which layout we're using.
 			-- We need one layoutbox per screen.
 			mylayoutbox[s] = awful.widget.layoutbox(s, { layout = awful.widget.layout.horizontal.leftright })
@@ -274,13 +277,13 @@ vicious.register(memtext, vicious.widgets.mem, "$1% ($2MB/$3MB)", 13)
 					separator,
 					cpuwidget.widget,
 					cputext,
-					cpubox,
 					separator,
-					memtext,
 					memwidget.widget,
-					membox,
+					memtext,
 					separator,
 					infobox,
+					separator,
+					nettext,
 					s == 1 and mysystray or nil,
 					layout = awful.widget.layout.horizontal.rightleft
 			},
