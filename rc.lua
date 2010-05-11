@@ -25,7 +25,7 @@
 	terminal = "urxvtc"
 	editor = os.getenv("EDITOR") or "vim"
 	editor_cmd = terminal .. " -e " .. editor
-	locker = "xlock"
+	locker = "vlock -n"
 	browser = "uzbl-browser&"
 	browser_session = "uzbl_session.sh -n&"
 	musicdir = "/home/dunz0r/warez/music/"
@@ -37,7 +37,7 @@
 	awful.menu.menu_keys.down = { "j"}
 	awful.menu.menu_keys.exec = { "g"}
 	-- what to use as a separator
-	sep = "<span weight='bold' font='Fixed' color='" .. beautiful.fg_focus .. "'>|</span>"
+	sep = " <span weight='bold' font='Fixed' color='" .. beautiful.fg_focus .. "'>|</span> "
 	modkey = "Mod4"
 
 	-- Table of layouts to cover with awful.layout.inc, order matters.
@@ -119,7 +119,7 @@
 			{ match = {".* - VIM"                       }, tag = "code",     },
 			{ match = { "zenity"                        }, intrusive = true, float = true},
 			{ match = {"::ncmpcpp.*",                   }, tag = "ncmpcpp",  },
-			{ match = {"MPlayer.*",                     }, tag = "video", },
+			{ match = {"MPlayer",                     }, tag = "video", },
 			{ match = {"MilkyTracker.*","Sound.racker.*"}, tag = "TRACKZ", },
 			{ match = {"wine"                           }, tag = "wine"},
 			{ match = {"apvlv", "Xpdf", "zathura"       }, tag = "PDF"},
@@ -150,51 +150,37 @@
 cpuwidget = awful.widget.graph()
 -- Graph properties
 cpuwidget:set_width(50)
-cpuwidget:set_height(14)
+cpuwidget:set_height(12)
 cpuwidget:set_background_color(beautiful.bg_normal)
 cpuwidget:set_border_color(beautiful.fg_focus)
 cpuwidget:set_color(beautiful.fg_focus)
-cpuwidget:set_background_color(beautiful.fg_off_widget)
-cpuwidget:set_gradient_angle(0):set_gradient_colors({
-	   beautiful.fg_end_widget, beautiful.fg_center_widget, beautiful.fg_widget
-})
 -- Register widget
 vicious.register(cpuwidget, vicious.widgets.cpu, "$1")
--- {{{ WEATHER
-weatherwidget = widget({ type = "textbox" })
-vicious.register(weatherwidget, vicious.widgets.weather, "<span color='#d6d6d6'>${sky}</span> @ ${tempc}°C on", 1200, "KOUN")
 
-function get_forecast(mode)
-    local s, cutoff
-    if mode == "quick" then
-        s = " | sed 's/Tomorrow Night/.../'"
-        cutoff = "/Tomorrow Night/"
-    elseif mode == "full" then
-        s = ""
-        cutoff = 38
-    end
+-- CPU Usage textbox
+-- Initialize widget
+cputext = widget({ type = "textbox" })
+cputext.width = 30
+-- Register widget
+vicious.register(cputext, vicious.widgets.cpu, "$1%")
 
-    local fp = io.popen("sed -n '1," .. cutoff .. "p' /tmp/weather" .. s)
-    local forecast = fp:read("*a")
-    fp:close()
+-- Memory usage graph
+-- Initialize widget
+memwidget = awful.widget.progressbar()
+-- Progressbar properties
+memwidget:set_width(50)
+memwidget:set_height(12)
+memwidget:set_background_color(beautiful.bg_normal)
+memwidget:set_border_color(beautiful.fg_focus)
+memwidget:set_color(beautiful.fg_focus)
+-- Register widget
+vicious.register(memwidget, vicious.widgets.mem, "$1", 13)
 
-    return forecast
-end
-
--- buttons
-weatherwidget:buttons(awful.util.table.join(
-    awful.button({ }, 1, function ()
-        naughty.notify { text = get_forecast("quick"), timeout = 5, hover_timeout = 0.5 }
-    end),
-    awful.button({ }, 2, function ()
-        awful.util.spawn(browser .. " http://www.accuweather.com/us/ok/norman/73071/city-weather-forecast.asp?partner=accuweather&u=1&traveler=0", false)
-        awful.tag.viewonly(tags[1][2])
-    end),
-    awful.button({ }, 3, function ()
-        naughty.notify { text = get_forecast("full"), timeout = 10, hover_timeout = 0.5 }
-    end)))
--- }}}
-
+-- Memory usage box
+-- Initialize widget
+memtext = widget({ type = "textbox" })
+-- Register widget
+vicious.register(memtext, vicious.widgets.mem, "$1% ($2MB/$3MB)", 13)
 
 --}}}
 
@@ -209,6 +195,7 @@ weatherwidget:buttons(awful.util.table.join(
 		mylayoutbox = {}
 		mpdbox = {}
 		infobox = {}
+		separator = {}
 		mytaglist = {}
 		mytaglist.buttons = awful.util.table.join(
 					awful.button({ }, 1, awful.tag.viewonly),
@@ -251,6 +238,12 @@ weatherwidget:buttons(awful.util.table.join(
 			mpdbox = widget({ screen = 1, type = "textbox", layout = awful.widget.layout.horizontal.leftright })
 			-- The infobox
 			infobox = widget({ screen = 1, type = "textbox", layout = awful.widget.layout.horizontal.leftright })
+			-- a separator
+			separator = widget({ type = "textbox", })
+			cpubox = widget({ type = "textbox", })
+			cpubox.text = " CPU:"
+			membox = widget({ type = "textbox", })
+			membox.text = " MEM:"
 			-- Create an imagebox widget which will contains an icon indicating which layout we're using.
 			-- We need one layoutbox per screen.
 			mylayoutbox[s] = awful.widget.layoutbox(s, { layout = awful.widget.layout.horizontal.leftright })
@@ -278,8 +271,15 @@ weatherwidget:buttons(awful.util.table.join(
 					mytextclock,
 					promptbox[s],
 					mpdbox,
-					weatherwidget.widget,
+					separator,
 					cpuwidget.widget,
+					cputext,
+					cpubox,
+					separator,
+					memtext,
+					memwidget.widget,
+					membox,
+					separator,
 					infobox,
 					s == 1 and mysystray or nil,
 					layout = awful.widget.layout.horizontal.rightleft
@@ -892,4 +892,5 @@ client.add_signal("unfocus", function(c) c.border_color = beautiful.border_norma
 get_weather(0)
 mpdbox.text = get_mpd()
 infobox.text = get_load_temp("THRM")
+separator.text = sep
 -- }}}
