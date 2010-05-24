@@ -30,7 +30,7 @@ theme.border_marked = "#91231c"
 --theme.taglist_bg_focus = "#ff0000"
 
 -- You can use your own command to set your wallpaper
-theme.wallpaper_cmd = { "feh --bg-center /home/dunz0r/.wallpaper" }
+theme.wallpaper_cmd = { "feh --bg-tile /home/dunz0r/.wallpaper" }
 -- {{{ Widgets
 -- You can add as many variables as
 -- you wish and access them by using

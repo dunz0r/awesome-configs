@@ -9,7 +9,7 @@
 	-- Dynamic Tagging
 	require("shifty")
 	-- kAwouru's MPD library
-	require("lib/mpd") ; mpc = mpd.new({ hostname="10.0.0.2"  })
+	require("lib/mpd") ; mpc = mpd.new({ hostname="localhost"  })
 	-- Keybind libraray by ierton
 	require("lib/keybind")
 	-- Cool stuff
@@ -896,5 +896,5 @@ get_weather(0)
 mpdbox.text = get_mpd()
 infobox.text = get_load_temp("THRM")
 separator.text = sep
-os.execute("xset -b")
+awful.util.spawn("xset -b")
 -- }}}
