@@ -149,7 +149,7 @@
 -- Initialize widget
 cpuwidget = awful.widget.graph()
 -- Graph properties
-cpuwidget:set_width(50)
+cpuwidget:set_width(80)
 cpuwidget:set_height(12)
 cpuwidget:set_background_color(beautiful.bg_normal)
 cpuwidget:set_border_color(beautiful.fg_focus)
@@ -160,7 +160,7 @@ vicious.register(cpuwidget, vicious.widgets.cpu, "$1")
 -- CPU Usage textbox
 -- Initialize widget
 cputext = widget({ type = "textbox" })
-cputext.width = 30
+cputext.width = 70
 -- Register widget
 vicious.register(cputext, vicious.widgets.cpu, "CPU: $1% ")
 
