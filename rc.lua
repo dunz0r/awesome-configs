@@ -155,6 +155,7 @@ cpuwidget:set_background_color(beautiful.bg_normal)
 cpuwidget:set_border_color(beautiful.fg_focus)
 cpuwidget:set_color(beautiful.fg_focus)
 -- Register widget
+vicious.cache(vicious.widgets.cpu)
 vicious.register(cpuwidget, vicious.widgets.cpu, "$1")
 
 -- CPU Usage textbox
@@ -300,28 +301,51 @@ vicious.register(nettext, vicious.widgets.net, "ETH0 TX:${eth0 down_mb} RX${eth0
 
 --{{{ Functions
 
---{{{ Get mpd info
+--[[{{{ Get mpd info
 function get_mpd()
   local stats = mpc:send("status")
    if stats.errormsg then
-    local mpd_text = "MPD error. "
+    mpd_text = "MPD error. "
    else
     if stats.state == "stop" then
-  	 local now_playing = " stopped"
+  	 now_playing = " stopped"
     else
       local zstats = mpc:send("playlistid " .. stats.songid)
   	  now_playing = ( zstats.album  or "NA" ) .. "; " .. ( zstats.artist or "NA" ) .. " - " .. (zstats.title or string.gsub(zstats.file, ".*/", "" ) )
-  	end
 	if stats.state == "pause" then
      now_playing = "<span color='#505050'>" .. awful.util.escape(now_playing) .. "</span>"
    else
      now_playing = awful.util.escape(now_playing)
    end
+  end
   mpd_text = now_playing
  end
 return mpd_text .. sep
 end
+--}]]
 --}}}
+function get_mpd()
+        local stats = mpc:send("status")
+
+        if stats.errormsg then
+            mpd_text = "MPD error."
+        else
+            if stats.state == "stop" then
+                now_playing = awful.util.escape("<stop>")
+            else
+                local zstats = mpc:send("playlistid " .. stats.songid)
+  	            now_playing = awful.util.escape(( zstats.album  or "NA" ) .. "; " .. ( zstats.artist or "NA" ) .. " - " .. (zstats.title or string.gsub(zstats.file, ".*/", "" ) ))
+            end
+
+            if stats.state == "pause" or stats.state == "stop" then
+                now_playing = "<span color='".. beautiful.fg_unfocus .."'>" .. now_playing .. "</span>"
+            end
+
+            mpd_text = " np: " .. now_playing
+        end
+
+        return mpd_text
+    end
 
 --{{{ Get the album image
 	function album_art()
@@ -898,3 +922,4 @@ infobox.text = get_load_temp("THRM")
 separator.text = sep
 awful.util.spawn("xset -b")
 -- }}}
+-- vim: filetype=lua:expandtab:shiftwidth=4:tabstop=8:softtabstop=4:encoding=utf-8:textwidth=80:foldmarker={{{,}}}
