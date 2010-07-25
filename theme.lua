@@ -13,6 +13,7 @@ theme.bg_minimize   = "#444444"
 
 theme.fg_normal     = "#898989"
 theme.fg_focus      = "#c8c8c8"
+theme.fg_unfocus    = "#606060"
 theme.fg_urgent     = "#ffffff"
 theme.fg_highlight  = "#ffffff"
 theme.fg_minimize   = "#ffffff"
@@ -31,7 +32,7 @@ theme.border_marked = "#91231c"
 --theme.taglist_bg_focus = "#ff0000"
 
 -- You can use your own command to set your wallpaper
-theme.wallpaper_cmd = { "feh --bg-tile /home/dunz0r/.wallpaper" }
+theme.wallpaper_cmd = { "nitrogen --restore" }
 -- {{{ Widgets
 -- You can add as many variables as
 -- you wish and access them by using

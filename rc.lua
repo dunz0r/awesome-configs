@@ -26,7 +26,7 @@
 	editor = os.getenv("EDITOR") or "vim"
 	editor_cmd = terminal .. " -e " .. editor
 	locker = "vlock -n"
-	browser = "uzbl-browser&"
+	browser = "uzbl-browser"
 	browser_session = "uzbl_session.sh -n&"
 	musicdir = "/home/dunz0r/warez/music/"
 	weatherurl = "http://www.accuweather.com/m/en-us/EUR/SE/SW015/Upplands-Vasby/Forecast.aspx"
@@ -87,7 +87,7 @@
 		
 		-- {{{ Tags
 		shifty.config.tags = {
-		irc = { spawn = terminal .. " -name SSH -title '::irssi::' -e ssh -t dunz0r@10.0.0.1 screen -RD ", position = 1, },
+		irc = { spawn = terminal .. " -tr -name SSH -title '::irssi::' -e ssh -t dunz0r@10.0.0.1 screen -RD ", position = 1, },
 		www = { solitary = true, position = 2, max_clients = 5,
 				exclusive = false, layout = awful.layout.suit.max, nopopup = true, spawn = browser},
 		term = { persist = true, position = 3, },
@@ -324,6 +324,8 @@ return mpd_text .. sep
 end
 --}]]
 --}}}
+
+--{{{ Get MPD info
 function get_mpd()
         local stats = mpc:send("status")
 
@@ -341,11 +343,12 @@ function get_mpd()
                 now_playing = "<span color='".. beautiful.fg_unfocus .."'>" .. now_playing .. "</span>"
             end
 
-            mpd_text = " np: " .. now_playing
+            mpd_text = " np: " .. now_playing .. sep
         end
 
         return mpd_text
     end
+--}}}
 
 --{{{ Get the album image
 	function album_art()
