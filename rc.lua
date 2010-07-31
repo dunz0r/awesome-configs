@@ -26,7 +26,7 @@
 	editor = os.getenv("EDITOR") or "vim"
 	editor_cmd = terminal .. " -e " .. editor
 	locker = "vlock -n"
-	browser = "uzbl-browser"
+	browser = "uzbl-tabbed"
 	browser_session = "uzbl_session.sh -n&"
 	musicdir = "/home/dunz0r/warez/music/"
 	weatherurl = "http://www.accuweather.com/m/en-us/EUR/SE/SW015/Upplands-Vasby/Forecast.aspx"
@@ -163,7 +163,7 @@ vicious.register(cpuwidget, vicious.widgets.cpu, "$1")
 cputext = widget({ type = "textbox" })
 cputext.width = 70
 -- Register widget
-vicious.register(cputext, vicious.widgets.cpu, "CPU: $1% ")
+vicious.register(cputext, vicious.widgets.cpu, " <span color='" .. beautiful.wid_rh .. "'>CPU: $1%</span>")
 
 -- Memory usage graph
 -- Initialize widget
@@ -181,13 +181,13 @@ vicious.register(memwidget, vicious.widgets.mem, " $1", 13)
 -- Initialize widget
 memtext = widget({ type = "textbox" })
 -- Register widget
-vicious.register(memtext, vicious.widgets.mem, "MEM: $1% ($2MB/$3MB) ", 13)
+vicious.register(memtext, vicious.widgets.mem, "<span color='" .. beautiful.wid_ch  .."'> MEM:</span> $1% ($2MB/$3MB) ", 13)
 
 -- Netwidgets
 -- Initialize widget
 nettext = widget({ type = "textbox" })
 -- Register widget
-vicious.register(nettext, vicious.widgets.net, "ETH0 TX:${eth0 down_mb} RX${eth0 up_mb}", 13)
+vicious.register(nettext, vicious.widgets.net, "<span color='" .. beautiful.wid_bh .. "'>ETH0</span> TX:${eth0 down_kb} RX:${eth0 up_kb}", 13)
 
 
 --}}}
@@ -199,9 +199,13 @@ vicious.register(nettext, vicious.widgets.net, "ETH0 TX:${eth0 down_mb} RX${eth0
 		mysystray = widget({ type = "systray" })
 		-- Create a wibox for each screen and add it
 		mywibox = {}
+		myawibox = {}
+		mybwibox = {}
 		promptbox = {}
+		pacmanbox = {}
 		mylayoutbox = {}
 		mpdbox = {}
+		mcbox = {}
 		infobox = {}
 		separator = {}
 		mytaglist = {}
@@ -242,10 +246,12 @@ vicious.register(nettext, vicious.widgets.net, "ETH0 TX:${eth0 down_mb} RX${eth0
 		for s = 1, screen.count() do
 			-- Create a promptbox for each screen
 			promptbox[s] = awful.widget.prompt({ layout = awful.widget.layout.horizontal.leftright })
-			-- Create an mpd box for each screen
+			-- Create an mpd box
 			mpdbox = widget({ screen = 1, type = "textbox", layout = awful.widget.layout.horizontal.leftright })
+			pacmanbox = widget({ type = "textbox", layout = awful.widget.layout.horizontal.leftright })
+			mcbox[s] = widget({ screen = s, type = "textbox", layout = awful.widget.layout.horizontal.leftright })
 			-- The infobox
-			infobox = widget({ screen = 1, type = "textbox", layout = awful.widget.layout.horizontal.leftright })
+			infobox = widget({ screen = s, type = "textbox", layout = awful.widget.layout.horizontal.leftright })
 			-- a separator
 			separator = widget({ type = "textbox", })
 			-- Create an imagebox widget which will contains an icon indicating which layout we're using.
@@ -264,16 +270,25 @@ vicious.register(nettext, vicious.widgets.net, "ETH0 TX:${eth0 down_mb} RX${eth0
 							  end, mytasklist.buttons)
 
 			-- Create the wibox
-			mywibox[s] = awful.wibox({ position = "top", screen = s, height = 37 })
+			mywibox[s] = awful.wibox({ position = "top", screen = s })
 			-- Add widgets to the wibox - order matters
 			mywibox[s].widgets = {
-			{
-				{
+				        mylayoutbox[s],
 					mytaglist[s],
-					layout = awful.widget.layout.horizontal.leftright
-				},
-					mytextclock,
 					promptbox[s],
+					mcbox[s],
+					s == 1 and mysystray or nil,
+				        mytasklist[s],
+				        layout = awful.widget.layout.horizontal.leftright
+			}
+
+		end
+
+		mybwibox = awful.wibox({ position = "bottom", screen = 1})
+
+		mybwibox.widgets = {
+
+                        		mytextclock,
 					mpdbox,
 					separator,
 					cpuwidget.widget,
@@ -285,46 +300,43 @@ vicious.register(nettext, vicious.widgets.net, "ETH0 TX:${eth0 down_mb} RX${eth0
 					infobox,
 					separator,
 					nettext,
-					s == 1 and mysystray or nil,
-					layout = awful.widget.layout.horizontal.rightleft
-			},
-			{
-				mylayoutbox[s],
-				mytasklist[s],
-				layout = awful.widget.layout.horizontal.leftright
-			},
-			layout = awful.widget.layout.vertical.flex
-			}
+					layout = awful.widget.layout.horizontal.leftright
 
-		end
+		                   }
+
+		myawibox = awful.wibox({ position = "bottom", screen = 2})
+		myawibox.widgets = {
+                        		mytextclock,
+                        		pacmanbox,
+					layout = awful.widget.layout.horizontal.leftright
+                }
 -- }}}
 
 --{{{ Functions
 
---[[{{{ Get mpd info
-function get_mpd()
-  local stats = mpc:send("status")
-   if stats.errormsg then
-    mpd_text = "MPD error. "
-   else
-    if stats.state == "stop" then
-  	 now_playing = " stopped"
-    else
-      local zstats = mpc:send("playlistid " .. stats.songid)
-  	  now_playing = ( zstats.album  or "NA" ) .. "; " .. ( zstats.artist or "NA" ) .. " - " .. (zstats.title or string.gsub(zstats.file, ".*/", "" ) )
-	if stats.state == "pause" then
-     now_playing = "<span color='#505050'>" .. awful.util.escape(now_playing) .. "</span>"
-   else
-     now_playing = awful.util.escape(now_playing)
-   end
-  end
-  mpd_text = now_playing
- end
-return mpd_text .. sep
-end
---}]]
---}}}
+--{{{ Get the Xdefault colours
+function xdef_get(file)
+	local fr = io.open(file)
+	
+	local f = fr:read("*all")
 
+    i=0
+    while i <= 15 do  
+	local exp = tostring("%*color" .. i .. ": rgb:%w+/%w+/%w%w")
+	local m = string.match(f, exp)
+	
+	m = string.gsub(m, "^.*:","")
+	m = string.gsub(m, "/","")
+	theme = {}
+	theme.xdef_col = {}
+	theme.xdef_col[i] = "\"#" .. (tostring(m)) .. "\""
+	--theme.xdef_col[i] = "theme.xdef_col" .. i .. "=\"#" .. (tostring(m)) .. "\""
+	print(theme.xdef_col[i])
+	i= i + 1
+    end
+end
+
+--}}}
 --{{{ Get MPD info
 function get_mpd()
         local stats = mpc:send("status")
@@ -336,14 +348,14 @@ function get_mpd()
                 now_playing = awful.util.escape("<stop>")
             else
                 local zstats = mpc:send("playlistid " .. stats.songid)
-  	            now_playing = awful.util.escape(( zstats.album  or "NA" ) .. "; " .. ( zstats.artist or "NA" ) .. " - " .. (zstats.title or string.gsub(zstats.file, ".*/", "" ) ))
+  	            now_playing =  "#" .. zstats.pos .. " " .. (awful.util.escape( zstats.album  or "NA" )) .. "<b>:</b> " .. (awful.util.escape( zstats.artist or "NA" )) .. " <b>-</b> " .. (awful.util.escape(zstats.title or string.gsub(zstats.file, ".*/", "" ) ))
             end
 
             if stats.state == "pause" or stats.state == "stop" then
                 now_playing = "<span color='".. beautiful.fg_unfocus .."'>" .. now_playing .. "</span>"
             end
 
-            mpd_text = " np: " .. now_playing .. sep
+            mpd_text = " <span color='" .. beautiful.wid_gl .. "'>np: </span><span color='" .. beautiful.wid_gh .. "'>" .. now_playing .. "</span>"
         end
 
         return mpd_text
@@ -374,11 +386,11 @@ function get_playlist ()
 		do
 		zstats = mpc:send("playlistinfo " .. i)
 		if zstats.pos == nil then
-			list = list .. "<big><b>::end::</b></big>"
+			list = list .. "<span color=" .. beautiful.wid_rl .. "><b>::end::</b></span>"
 			break
 		end
 		if zstats.pos == stats.song then
-			list = list .. "<span color='" .. beautiful.fg_focus .. "'><b>" .. zstats.pos .. ". " .. awful.util.escape((zstats.artist or "NA") .. " - " .. (zstats.title or zstats.file)) .. "</b></span>\n"
+			list = list .. "<span color='" .. beautiful.wid_yh .. "'><b>" .. zstats.pos .. ". " .. awful.util.escape((zstats.artist or "NA") .. " - " .. (zstats.title or zstats.file)) .. "</b></span>\n"
 		else
 			list = list .. zstats.pos .. ". " .. awful.util.escape((zstats.artist or "NA") .. " - " .. (zstats.title or zstats.file) ) .. "\n"
 		end
@@ -433,9 +445,9 @@ end
 
 --{{{ Show todos
     function show_todo(graft)
-        local todo = awful.util.pread("todo --mono")
+        local todo = awful.util.escape(awful.util.pread("todo --mono"))
         todo = naughty.notify({
-            text = "<b><u>devtodo</u></b>\n" .. "<span color='" .. beautiful.fg_focus .. "'>".. string.format(os.date("%a, %d %B %Y") .. "</span>" .. "\n" .. todo),
+            text = "<b><u>devtodo</u></b>\n" .. "<span color='" .. beautiful.wid_cl .. "'>".. string.format(os.date("%a, %d %B %Y") .. "</span>" .. "\n" .. todo),
             timeout = 10
         })
     end
@@ -474,12 +486,11 @@ function get_load_temp(sensor)
 	local l = lf:read()
 	local t = tf:read()
 
-	local l = string.match(l, "%d+%.%d%d")
 	local t = string.match(t, "%d+ C")
 	lf:close()
 	tf:close()
 
-	return l .. sep .. t .. " "
+	return "<span color='" .. beautiful.wid_mh .. "'>" .. l .. "</span>".. sep .. "<span color='".. beautiful.wid_ml .. "'>" .. t .. "</span>"
 end
 --}}}
 
@@ -501,7 +512,7 @@ end
 		local fp = io.open("/tmp/.weather")
 		local forecast = fp:read("*a")
 		fp:close()
-		return "<span color='" .. beautiful.fg_focus .. "'>weather for upplands väsby</span>\n"  .. forecast
+		return "<span color='" .. beautiful.wid_rh .. "'>weather for upplands väsby</span>\n"  .. forecast
 	else
 		os.execute("wget -q -O - " .. weatherurl .. " | sed -n '/Now/,/More Forecasts/p' | sed 's/<[^>]*>//g; s/^ [ ]*//g; s/&copy;/(c) /g; s/&amp;/and/;s/&deg;//g;s/&nbsp;//g;s/Details//g;s/|//g;s/Hourly//g;s/More Forecasts//'|uniq -u > /tmp/.weather &")
 		return ""
@@ -562,6 +573,17 @@ end
 
 --}}}
 
+--{{{ Get ncol and nmaster
+function getnmc()
+    local t = awful.tag.selected()
+
+    local m = awful.tag.getnmaster(t)
+    local c = awful.tag.getncol()
+
+    return m .. "m " .. c "c"
+end
+--}}}
+
 --{{{ Returns true if all pairs in table1 are present in table2
 function match (table1, table2)
    for k, v in pairs(table1) do
@@ -570,6 +592,13 @@ function match (table1, table2)
       end
    end
    return true
+end
+--}}}
+
+--{{{ Get pacman updates
+function get_pmupdates()
+    local p = awful.util.pread("pacman -Qu|wc -l")
+    return "<span color='" .. beautiful.wid_yh .. "'>pacman: </span>" .. p
 end
 --}}}
 
@@ -695,9 +724,9 @@ globalkeys = awful.util.table.join(
 				text = get_weather(1), timeout = 10 }
 				keybind.pop()
 			end),
-			keybind.key({}, "c", "show clients", function ()
-				naughty.notify{ position = "top_right", title = "::weather::",
-				text = clientfind({name="::uzbl::"}), timeout = 10 }
+			keybind.key({}, "c", "show tag info", function ()
+				naughty.notify{ position = "top_right", title = "::tag::",
+				text = getnmc(), timeout = 10 }
 				keybind.pop()
 			end),
 			keybind.key({}, "d", "disk info", function ()
@@ -911,18 +940,23 @@ boxtimer:add_signal("timeout", function()
 		mpdbox.text = get_mpd()
 	end)
 boxtimer:start()
-weathertimer = timer { timeout = 880 }
+weathertimer = timer { timeout = 600 }
 weathertimer:add_signal("timeout", function()
 		get_weather(0)
+		pacmanbox.text = get_pmupdates()
 	end)
 
-client.add_signal("focus", function(c) c.border_color = beautiful.border_focus end)
+client.add_signal("focus",  function(c) c.border_color = beautiful.border_focus end)
 client.add_signal("unfocus", function(c) c.border_color = beautiful.border_normal end)
+
+tag.add_signal("property::ncol", function () mcbox[s].text = getnmc() end)
+tag.add_signal("property::nmaster", function() mcbox[s].text = getnmc() end)
+-- }}}
 -- stuff to do so we don't have to wait for boxes and the likes to update
 get_weather(0)
+pacmanbox.text = get_pmupdates()
 mpdbox.text = get_mpd()
 infobox.text = get_load_temp("THRM")
 separator.text = sep
 awful.util.spawn("xset -b")
--- }}}
 -- vim: filetype=lua:expandtab:shiftwidth=4:tabstop=8:softtabstop=4:encoding=utf-8:textwidth=80:foldmarker={{{,}}}
