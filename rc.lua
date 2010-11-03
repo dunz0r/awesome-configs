@@ -26,8 +26,7 @@
 	editor = os.getenv("EDITOR") or "vim"
 	editor_cmd = terminal .. " -e " .. editor
 	locker = "vlock -n"
-	browser = "uzbl-tabbed"
-	browser_session = "uzbl_session.sh -n&"
+	browser = "luakit"
 	musicdir = "/home/dunz0r/warez/music/"
 	weatherurl = "http://www.accuweather.com/m/en-us/EUR/SE/SW015/Upplands-Vasby/Forecast.aspx"
 	-- where to paste
@@ -87,7 +86,7 @@
 		
 		-- {{{ Tags
 		shifty.config.tags = {
-		irc = { spawn = terminal .. " -tr -name SSH -title '::irssi::' -e ssh -t dunz0r@10.0.0.1 screen -RD ", position = 1, },
+                irc = { name = "1:irc", spawn = terminal .. " -name SSH -title '::irssi::' -e ssh -t dunz0r@hax0r.se tmux attach ", position = 1, },
 		www = { solitary = true, position = 2, max_clients = 5,
 				exclusive = false, layout = awful.layout.suit.max, nopopup = true, spawn = browser},
 		term = { persist = true, position = 3, },
@@ -95,13 +94,15 @@
 				spawn = terminal .. " -name '::ncmpcpp::' -title '::ncmpcpp::' -e ncmpcpp", },
 		code = { spawn = terminal .. " -title '- VIM' -e sh -c 'sleep 0.2s;" .. editor .. "'", nopopup = false, position = 6,
 				layout = awful.layout.suit.max },
-		gimp = { spawn = "gimp", layout = awful.layout.suit.max, sweep_delay = 2, screen = 1,  },
-		gimptool = { layout = awful.layout.suit.tile, sweep_delay = 2, screen = 2,  },
 		mutt = { position = 7, layout = awful.layout.suit.max, 
 				spawn = terminal .. " -name mutt -title '::mutt::' -e sh -c 'sleep 0.1s;mutt'", nopopup = false, },
+		news = { position = 10, spawn = terminal .. " -name Newsbeuter -title '::newsbeuter::' -e newsbeuter" },
 		video = { nopopup = false, position = 4, layout = awful.layout.suit.float, },
 		PDF = { layout = awful.layout.suit.max.fullscreen, position = 8, nopopup = false },
 		img = { position = 9, layout = awful.layout.suit.max.fullscreen, nopopup = false, },
+		-- No fixed positions
+		gimp = { spawn = "gimp", layout = awful.layout.suit.max, sweep_delay = 2, screen = 1,  },
+		gimptool = { layout = awful.layout.suit.tile, sweep_delay = 2, screen = 2,  },
 		wine = { layout = awful.layout.suit.float }
 		}
 		--}}}
@@ -111,11 +112,13 @@
 			{ match = { "::irssi::",                    }, tag = "irc", },
 			{ match = { "SSH",                    }, tag = "irc", },
 			{ match = { "::mutt::",                    }, tag = "mutt", },
-			{ match = {"::uzbl::"       }, nopopup = true, tag = "www" },
+			{ match = {"::luakit::"       }, nopopup = true, tag = "www" },
+			{ match = {"luakit"       }, nopopup = true, tag = "www" },
 			{ match = {"uzbl"       }, nopopup = true, tag = "www" },
 			{ match = {"urxvt"                          }, tag = "term",     },
 			{ match = {"xev"                            }, intrusive = true,     },
 			{ match = {"::term::"                        }, tag = "term",     },
+			{ match = {"::newsbeuter::"                        }, tag = "news",     },
 			{ match = {".* - VIM"                       }, tag = "code",     },
 			{ match = { "zenity"                        }, intrusive = true, float = true},
 			{ match = {"::ncmpcpp.*",                   }, tag = "ncmpcpp",  },
@@ -161,9 +164,9 @@ vicious.register(cpuwidget, vicious.widgets.cpu, "$1")
 -- CPU Usage textbox
 -- Initialize widget
 cputext = widget({ type = "textbox" })
-cputext.width = 70
+cputext.width = 83 
 -- Register widget
-vicious.register(cputext, vicious.widgets.cpu, " <span color='" .. beautiful.wid_rh .. "'>CPU: $1%</span>")
+vicious.register(cputext, vicious.widgets.cpu, " <span color='" .. beautiful.wid_rh .. "'>CPU: $1%</span>" .. sep)
 
 -- Memory usage graph
 -- Initialize widget
@@ -175,19 +178,19 @@ memwidget:set_background_color(beautiful.bg_normal)
 memwidget:set_border_color(beautiful.fg_focus)
 memwidget:set_color(beautiful.fg_focus)
 -- Register widget
-vicious.register(memwidget, vicious.widgets.mem, " $1", 13)
+vicious.register(memwidget, vicious.widgets.mem, "$1", 13)
 
 -- Memory usage box
 -- Initialize widget
 memtext = widget({ type = "textbox" })
 -- Register widget
-vicious.register(memtext, vicious.widgets.mem, "<span color='" .. beautiful.wid_ch  .."'> MEM:</span> $1% ($2MB/$3MB) ", 13)
+vicious.register(memtext, vicious.widgets.mem, "<span color='" .. beautiful.wid_ch  .."'> MEM:</span> $1% ($2MB/$3MB)" .. sep, 13)
 
 -- Netwidgets
 -- Initialize widget
 nettext = widget({ type = "textbox" })
 -- Register widget
-vicious.register(nettext, vicious.widgets.net, "<span color='" .. beautiful.wid_bh .. "'>ETH0</span> TX:${eth0 down_kb} RX:${eth0 up_kb}", 13)
+vicious.register(nettext, vicious.widgets.net, "<span color='" .. beautiful.wid_bh .. "'>ETH0</span> TX:${eth0 down_kb} RX:${eth0 up_kb}" .. sep, 13)
 
 
 --}}}
@@ -290,53 +293,55 @@ vicious.register(nettext, vicious.widgets.net, "<span color='" .. beautiful.wid_
 
                         		mytextclock,
 					mpdbox,
-					separator,
 					cpuwidget.widget,
 					cputext,
-					separator,
 					memwidget.widget,
 					memtext,
-					separator,
 					infobox,
-					separator,
 					nettext,
 					layout = awful.widget.layout.horizontal.leftright
 
 		                   }
 
-		myawibox = awful.wibox({ position = "bottom", screen = 2})
+	--[[	myawibox = awful.wibox({ position = "bottom", screen = 1})
 		myawibox.widgets = {
                         		mytextclock,
                         		pacmanbox,
 					layout = awful.widget.layout.horizontal.leftright
                 }
+                --]]
 -- }}}
 
 --{{{ Functions
 
 --{{{ Get the Xdefault colours
-function xdef_get(file)
+function get_xdef(file)
 	local fr = io.open(file)
 	
 	local f = fr:read("*all")
 
-    i=0
-    while i <= 15 do  
+    local i=0
+    while i <= 15 do
 	local exp = tostring("%*color" .. i .. ": rgb:%w+/%w+/%w%w")
-	local m = string.match(f, exp)
+	m = string.match(f, exp)
 	
 	m = string.gsub(m, "^.*:","")
 	m = string.gsub(m, "/","")
-	theme = {}
-	theme.xdef_col = {}
-	theme.xdef_col[i] = "\"#" .. (tostring(m)) .. "\""
-	--theme.xdef_col[i] = "theme.xdef_col" .. i .. "=\"#" .. (tostring(m)) .. "\""
-	print(theme.xdef_col[i])
+	xdef_col = {}
+	xdef_col[i] = "#" .. m
+	--xdef_col[i] = "theme.xdef_col" .. i .. "=\"#" .. (tostring(m)) .. "\""
 	i= i + 1
+	--xdef_col[i] = tostring(xdef_col[i])
+	--print(xdef_col[i])
+	xdef_col[i] = tostring(m)
+	print(xdef_col[i])
     end
+    fr:close()
+    return xdef_col{}
 end
 
 --}}}
+
 --{{{ Get MPD info
 function get_mpd()
         local stats = mpc:send("status")
@@ -355,7 +360,7 @@ function get_mpd()
                 now_playing = "<span color='".. beautiful.fg_unfocus .."'>" .. now_playing .. "</span>"
             end
 
-            mpd_text = " <span color='" .. beautiful.wid_gl .. "'>np: </span><span color='" .. beautiful.wid_gh .. "'>" .. now_playing .. "</span>"
+            mpd_text = " <span color='" .. beautiful.wid_ml .. "'>np: </span><span color='" .. beautiful.wid_gh .. "'>" .. now_playing .. "</span>"
         end
 
         return mpd_text
@@ -386,27 +391,17 @@ function get_playlist ()
 		do
 		zstats = mpc:send("playlistinfo " .. i)
 		if zstats.pos == nil then
-			list = list .. "<span color=" .. beautiful.wid_rl .. "><b>::end::</b></span>"
+			list = list .. "<span color=" .. beautiful.wid_rh .. "><b>::end::</b></span>"
 			break
 		end
 		if zstats.pos == stats.song then
-			list = list .. "<span color='" .. beautiful.wid_yh .. "'><b>" .. zstats.pos .. ". " .. awful.util.escape((zstats.artist or "NA") .. " - " .. (zstats.title or zstats.file)) .. "</b></span>\n"
+			list = list .. "<span color='" .. beautiful.wid_bh .. "'><b>" .. zstats.pos .. ". " .. awful.util.escape((zstats.artist or "NA") .. " - " .. (zstats.title or zstats.file)) .. "</b></span>\n"
 		else
 			list = list .. zstats.pos .. ". " .. awful.util.escape((zstats.artist or "NA") .. " - " .. (zstats.title or zstats.file) ) .. "\n"
 		end
 	end
     return list
 end
---}}}
-
---{{{ Add a todo note
-
-	function add_todo (todo)
-		naughty.notify({
-		text = "<b><u>devtodo: </u></b> " .. "<span color='" .. beautiful.fg_focus .. "'>" .. awful.util.pread("todo --add --priority " .. todo) .. "</span>",
-		timeout = 10
-		})
-	end
 --}}}
 
 --{{{ Find song in playlist and play it.
@@ -441,6 +436,16 @@ end
         end 
     end 
 
+--}}}
+
+--{{{ Add a todo note
+
+	function add_todo (todo)
+		naughty.notify({
+		text = "<b><u>devtodo: </u></b> " .. "<span color='" .. beautiful.fg_focus .. "'>" .. awful.util.pread("todo --add --priority " .. todo) .. "</span>",
+		timeout = 10
+		})
+	end
 --}}}
 
 --{{{ Show todos
@@ -490,7 +495,7 @@ function get_load_temp(sensor)
 	lf:close()
 	tf:close()
 
-	return "<span color='" .. beautiful.wid_mh .. "'>" .. l .. "</span>".. sep .. "<span color='".. beautiful.wid_ml .. "'>" .. t .. "</span>"
+	return "<span color='" .. beautiful.wid_mh .. "'>" .. l .. "</span>".. sep .. "<span color='".. beautiful.wid_ml .. "'>" .. t .. "</span>" .. sep
 end
 --}}}
 
@@ -957,6 +962,7 @@ get_weather(0)
 pacmanbox.text = get_pmupdates()
 mpdbox.text = get_mpd()
 infobox.text = get_load_temp("THRM")
+get_xdef("/home/dunz0r/.Xdefaults")
 separator.text = sep
 awful.util.spawn("xset -b")
--- vim: filetype=lua:expandtab:shiftwidth=4:tabstop=8:softtabstop=4:encoding=utf-8:textwidth=80:foldmarker={{{,}}}
+-- vim: filetype=lua:expandtab:shiftwidth=4:tabstop=8:softtabstop=4:textwidth=80:foldmarker={{{,}}}
